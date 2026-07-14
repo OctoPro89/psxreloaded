@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{7d863a98-73ab-45ff-9f35-035ecfb4bc24}</ProjectGuid>
+    <RootNamespace>psxreloaded</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;DEBUG;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>src/;src/imgui/;$(ProjectDir)/lib/include/;</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/lib/;</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;RELEASE;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>src/;src/imgui/;$(ProjectDir)/lib/include/;</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/lib/;</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;DEBUG;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>src/;src/imgui/;$(ProjectDir)/lib/include/;</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/lib/;</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;RELEASE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>src/;src/imgui/;$(ProjectDir)/lib/include/;</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/lib/;</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="src\AudioDevice.h" />
+    <ClInclude Include="src\core\ArrayHelpers.h" />
+    <ClInclude Include="src\core\ClassHelpers.h" />
+    <ClInclude Include="src\core\FileHelpers.h" />
+    <ClInclude Include="src\core\Helpers.h" />
+    <ClInclude Include="src\core\hp_assert.h" />
+    <ClInclude Include="src\core\Log.h" />
+    <ClInclude Include="src\core\MathsHelpers.h" />
+    <ClInclude Include="src\core\Parse.h" />
+    <ClInclude Include="src\core\RingBuffer.h" />
+    <ClInclude Include="src\core\StringHelpers.h" />
+    <ClInclude Include="src\core\Types.h" />
+    <ClInclude Include="src\GUI\CDROMWindow.h" />
+    <ClInclude Include="src\GUI\CDWindow.h" />
+    <ClInclude Include="src\GUI\CPUWindow.h" />
+    <ClInclude Include="src\GUI\DMAWindow.h" />
+    <ClInclude Include="src\GUI\GPUWindow.h" />
+    <ClInclude Include="src\GUI\HostWindow.h" />
+    <ClInclude Include="src\GUI\ImGuiDemoWindow.h" />
+    <ClInclude Include="src\GUI\ImGuiWrap.h" />
+    <ClInclude Include="src\GUI\InsertDiscDialog.h" />
+    <ClInclude Include="src\GUI\MemoryCardFileDialog.h" />
+    <ClInclude Include="src\GUI\MemoryCardWindow.h" />
+    <ClInclude Include="src\GUI\SideloadDialog.h" />
+    <ClInclude Include="src\GUI\SnapshotDialog.h" />
+    <ClInclude Include="src\GUI\SPUWindow.h" />
+    <ClInclude Include="src\Host.h" />
+    <ClInclude Include="src\HostAudioBuffer.h" />
+    <ClInclude Include="src\imgui\backends\imgui_impl_sdl3.h" />
+    <ClInclude Include="src\imgui\backends\imgui_impl_sdlgpu3.h" />
+    <ClInclude Include="src\imgui\backends\imgui_impl_sdlgpu3_shaders.h" />
+    <ClInclude Include="src\imgui\imconfig.h" />
+    <ClInclude Include="src\imgui\imgui.h" />
+    <ClInclude Include="src\imgui\imgui_internal.h" />
+    <ClInclude Include="src\imgui\imstb_rectpack.h" />
+    <ClInclude Include="src\imgui\imstb_textedit.h" />
+    <ClInclude Include="src\imgui\imstb_truetype.h" />
+    <ClInclude Include="src\Input.h" />
+    <ClInclude Include="src\psx-utils\R3000Utils.h" />
+    <ClInclude Include="src\psx-utils\Sideload.h" />
+    <ClInclude Include="src\psx-utils\Snapshot.h" />
+    <ClInclude Include="src\psx-utils\TTYLogger.h" />
+    <ClInclude Include="src\psx-utils\VRAMConvert.h" />
+    <ClInclude Include="src\psx\BIOS.h" />
+    <ClInclude Include="src\psx\Bus.h" />
+    <ClInclude Include="src\psx\CD.h" />
+    <ClInclude Include="src\psx\CDROM.h" />
+    <ClInclude Include="src\psx\Controller.h" />
+    <ClInclude Include="src\psx\ControllerPort.h" />
+    <ClInclude Include="src\psx\DMA.h" />
+    <ClInclude Include="src\psx\GPU.h" />
+    <ClInclude Include="src\psx\GTE.h" />
+    <ClInclude Include="src\psx\INTC.h" />
+    <ClInclude Include="src\psx\MDEC.h" />
+    <ClInclude Include="src\psx\MemoryCard.h" />
+    <ClInclude Include="src\psx\R3000.h" />
+    <ClInclude Include="src\psx\R3000Dasm.h" />
+    <ClInclude Include="src\psx\RAM.h" />
+    <ClInclude Include="src\psx\Scheduler.h" />
+    <ClInclude Include="src\psx\SIO.h" />
+    <ClInclude Include="src\psx\SPU.h" />
+    <ClInclude Include="src\psx\Timers.h" />
+    <ClInclude Include="src\psx\Timing.h" />
+    <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\Texture.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\AudioDevice.cpp" />
+    <ClCompile Include="src\core\FileHelpers.cpp" />
+    <ClCompile Include="src\core\Helpers.cpp" />
+    <ClCompile Include="src\core\hp_assert.cpp" />
+    <ClCompile Include="src\core\Log.cpp" />
+    <ClCompile Include="src\core\Parse.cpp" />
+    <ClCompile Include="src\core\RingBuffer.cpp" />
+    <ClCompile Include="src\core\StringHelpers.cpp" />
+    <ClCompile Include="src\GUI\CDROMWindow.cpp" />
+    <ClCompile Include="src\GUI\CDWindow.cpp" />
+    <ClCompile Include="src\GUI\CPUWindow.cpp" />
+    <ClCompile Include="src\GUI\DMAWindow.cpp" />
+    <ClCompile Include="src\GUI\GPUWindow.cpp" />
+    <ClCompile Include="src\GUI\HostWindow.cpp" />
+    <ClCompile Include="src\GUI\ImGuiDemoWindow.cpp" />
+    <ClCompile Include="src\GUI\ImGuiWrap.cpp" />
+    <ClCompile Include="src\GUI\InsertDiscDialog.cpp" />
+    <ClCompile Include="src\GUI\MemoryCardFileDialog.cpp" />
+    <ClCompile Include="src\GUI\MemoryCardWindow.cpp" />
+    <ClCompile Include="src\GUI\SideloadDialog.cpp" />
+    <ClCompile Include="src\GUI\SnapshotDialog.cpp" />
+    <ClCompile Include="src\GUI\SPUWindow.cpp" />
+    <ClCompile Include="src\HopStation.cpp" />
+    <ClCompile Include="src\Host.cpp" />
+    <ClCompile Include="src\HostAudioBuffer.cpp" />
+    <ClCompile Include="src\imgui\backends\imgui_impl_sdl3.cpp" />
+    <ClCompile Include="src\imgui\backends\imgui_impl_sdlgpu3.cpp" />
+    <ClCompile Include="src\imgui\imgui.cpp" />
+    <ClCompile Include="src\imgui\imgui_demo.cpp" />
+    <ClCompile Include="src\imgui\imgui_draw.cpp" />
+    <ClCompile Include="src\imgui\imgui_tables.cpp" />
+    <ClCompile Include="src\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\Input.cpp" />
+    <ClCompile Include="src\psx-utils\R3000Utils.cpp" />
+    <ClCompile Include="src\psx-utils\Sideload.cpp" />
+    <ClCompile Include="src\psx-utils\Snapshot.cpp" />
+    <ClCompile Include="src\psx-utils\TTYLogger.cpp" />
+    <ClCompile Include="src\psx-utils\VRAMConvert.cpp" />
+    <ClCompile Include="src\psx\BIOS.cpp" />
+    <ClCompile Include="src\psx\Bus.cpp" />
+    <ClCompile Include="src\psx\CD.cpp" />
+    <ClCompile Include="src\psx\CDROM.cpp" />
+    <ClCompile Include="src\psx\Controller.cpp" />
+    <ClCompile Include="src\psx\ControllerPort.cpp" />
+    <ClCompile Include="src\psx\DMA.cpp" />
+    <ClCompile Include="src\psx\GPU.cpp" />
+    <ClCompile Include="src\psx\GTE.cpp" />
+    <ClCompile Include="src\psx\INTC.cpp" />
+    <ClCompile Include="src\psx\MDEC.cpp" />
+    <ClCompile Include="src\psx\MemoryCard.cpp" />
+    <ClCompile Include="src\psx\R3000.cpp" />
+    <ClCompile Include="src\psx\R3000Dasm.cpp" />
+    <ClCompile Include="src\psx\RAM.cpp" />
+    <ClCompile Include="src\psx\Scheduler.cpp" />
+    <ClCompile Include="src\psx\SIO.cpp" />
+    <ClCompile Include="src\psx\SPU.cpp" />
+    <ClCompile Include="src\psx\Timers.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
