@@ -4,7 +4,6 @@
 
 #include "AudioDevice.h"
 
-#include "Texture.h"
 #include "Renderer.h"
 
 #include "psx-utils/VRAMConvert.h"
@@ -21,13 +20,10 @@
 #include "core/StringHelpers.h"
 #include "core/MathsHelpers.h"
 
-#include "imgui.h"
-
-#include "SDL3/SDL_audio.h"
-
 #include <string.h> // memset
 
-static SDL_Window* s_pWindow;
+// TODO:
+//static SDL_Window* s_pWindow;
 
 static Bus s_bus; // the PSX machine
 
@@ -70,15 +66,15 @@ static bool initHostAudio()
 	// This is currently ignored, see AudioDevice::Init()
 	unsigned int requestedBufferSizeInSampleFrames = 512;
 
-	if (AudioDevice::Init(requestedBufferSizeInSampleFrames, kHostAudioSampleRate))
-	{
-		LOG_INFO("Audio device initialised.\n");
-	}
-	else
-	{
-		LOG_ERROR("Failed to initialise audio device\n");
-		return false;
-	}
+	//if (AudioDevice::Init(requestedBufferSizeInSampleFrames, kHostAudioSampleRate))
+	//{
+		//LOG_INFO("Audio device initialised.\n");
+	//}
+	//else
+	//{
+		//LOG_ERROR("Failed to initialise audio device\n");
+		//return false;
+	//}
 
 	// Create buffer for signed 16-bit stereo PCM samples from emulator
 	HP_ASSERT(s_pEmulatorAudioBuffer == nullptr);
@@ -100,10 +96,12 @@ static void audioFrameCallback(const int16_t spuSamples[2])
 
 		// Newly-opened audio devices start in the paused state. #TODO: Does this still apply in SDL3?
 		// #TODO: Only unpause when emulator is running
-		if (AudioDevice::IsPaused())
-			AudioDevice::Resume();
+		//if (AudioDevice::IsPaused())
+			//AudioDevice::Resume();
 
 		// Prevent audio buffer under-run or over-run by dynamically adjusting the sample rate slightly to speed up or slow down the audio output.
+		// TODO
+		/*
 		if (s_dynamicAudioResamplingEnabled)
 		{
 			static float s_smoothedError = 0.0f; // Exponential Moving Average (EMA)
@@ -148,18 +146,19 @@ static void audioFrameCallback(const int16_t spuSamples[2])
 				SDL_SetAudioStreamFrequencyRatio(AudioDevice::GetAudioStream(), 1.0f);
 			}
 		}
+		*/
 	}
 }
 
-bool Host::Init(SDL_Window* pWindow, bool initAudio, const char* biosPath)
+bool Host::Init(bool initAudio, const char* biosPath)
 {
-	s_pWindow = pWindow;
-
-	if (!Renderer::Init(pWindow))
+	/*
+	if (!Renderer::Init())
 	{
 		LOG_ERROR("Failed to initialise renderer\n");
 		return false;
 	}
+	*/
 
 	s_audioEnabled = false;
 	if (initAudio)
@@ -205,14 +204,12 @@ void Host::Shutdown()
 	delete s_pVramTexture;
 	s_pVramTexture = nullptr;
 
-	delete s_pEmulatorAudioBuffer;
+	//delete s_pEmulatorAudioBuffer;
 	s_pEmulatorAudioBuffer = nullptr;
 
-	AudioDevice::Shutdown();
+	//AudioDevice::Shutdown();
 
-	Renderer::Shutdown();
-
-	s_pWindow = nullptr;
+	//Renderer::Shutdown();
 }
 
 void Host::ResetEmulator()
@@ -276,13 +273,12 @@ static void updateDisplayTexture()
 		dstRect.w = displayWidth;
 		dstRect.h = s_displayHeight;
 
-		VRAMConvert::ConvertToR8G8B8A8_UNORM(
-			vram, srcRect, gpu.GetDisplayFormat(),
-			s_displayImageData, dstRect, s_pDisplayTexture->GetWidth(), s_pDisplayTexture->GetHeight());
+		VRAMConvert::ConvertToR8G8B8A8_UNORM(vram, srcRect, gpu.GetDisplayFormat(), s_displayImageData, dstRect, s_pDisplayTexture->GetWidth(), s_pDisplayTexture->GetHeight());
 	}
 
 	// #TODO: Is it a race condition to call Texture::CopyImageDataToTransferBuffer and copy data into the transfer buffer while GPU is running? Should this be called within the render phase?
-	s_pDisplayTexture->CopyImageDataToTransferBuffer(s_displayImageData);
+	//s_pDisplayTexture->CopyImageDataToTransferBuffer(s_displayImageData);
+	s_pDisplayTexture->Upload(s_displayImageData);
 }
 
 static void updateVramTexture()
@@ -304,40 +300,38 @@ static void updateVramTexture()
 		/*.h =*/ kVRAMHeightLines
 	};
 
-	VRAMConvert::ConvertToR8G8B8A8_UNORM(
-		vram, srcRect, DisplayFormat::A1B5G5R5,
-		s_vramImageData, dstRect, kVRAMTextureWidthPixels, kVRAMHeightLines);
+	VRAMConvert::ConvertToR8G8B8A8_UNORM(vram, srcRect, DisplayFormat::A1B5G5R5, s_vramImageData, dstRect, kVRAMTextureWidthPixels, kVRAMHeightLines);
 
 	// #TODO: Is it a race condition to call Texture::CopyImageDataToTransferBuffer and copy data into the transfer buffer while GPU is running? Should this be called within the render phase?
-	s_pVramTexture->CopyImageDataToTransferBuffer(s_vramImageData);
+	//s_pVramTexture->CopyImageDataToTransferBuffer(s_vramImageData);
 }
 
 static void generateTestTone(double deltaTimeSeconds)
 {
 	// #TEST: Play 440 Hz square wave
 	float frequency = 440.0f; // periods per second
-	unsigned int samplesPerPeriod = (unsigned int)(AudioDevice::GetSampleRate() / frequency); // (samples / second) / (period / second) = samples / period
+	//unsigned int samplesPerPeriod = (unsigned int)(AudioDevice::GetSampleRate() / frequency); // (samples / second) / (period / second) = samples / period
 	static unsigned int s_frameCount = 0; // total audio frames generated
 
-	unsigned int numFrames = (unsigned int)(deltaTimeSeconds * AudioDevice::GetSampleRate()); // total number of frames (all channels) to generate this update
+	//unsigned int numFrames = (unsigned int)(deltaTimeSeconds * AudioDevice::GetSampleRate()); // total number of frames (all channels) to generate this update
 
 	// Ensure we don't overflow the buffer
 	unsigned int maxFrames = s_pEmulatorAudioBuffer->GetCapacity() / kAudioChannelCount;
-	if (numFrames > maxFrames)
-		numFrames = maxFrames;
+	//if (numFrames > maxFrames)
+		//numFrames = maxFrames;
 
 	s_pEmulatorAudioBuffer->Reset();
-	for (unsigned int i = 0; i < numFrames; i++)
-	{
+	//for (unsigned int i = 0; i < numFrames; i++)
+	//{
 		// Stereo sound, so writing to both channels
-		int16_t val = (s_frameCount % samplesPerPeriod) < (samplesPerPeriod / 2) ? INT16_MIN : INT16_MAX;
-		s_pEmulatorAudioBuffer->WriteSample(val); // L
-		s_pEmulatorAudioBuffer->WriteSample(val); // R
-		s_frameCount++;
-	}
+		//int16_t val = (s_frameCount % samplesPerPeriod) < (samplesPerPeriod / 2) ? INT16_MIN : INT16_MAX;
+		//s_pEmulatorAudioBuffer->WriteSample(val); // L
+		//s_pEmulatorAudioBuffer->WriteSample(val); // R
+		//s_frameCount++;
+	//}
 
-	unsigned int lengthBytes = numFrames * sizeof(int16_t) * kAudioChannelCount; // total bytes (all channels)
-	AudioDevice::PutAudioStreamData(s_pEmulatorAudioBuffer->GetBuffer(), lengthBytes);
+	//unsigned int lengthBytes = numFrames * sizeof(int16_t) * kAudioChannelCount; // total bytes (all channels)
+	//AudioDevice::PutAudioStreamData(s_pEmulatorAudioBuffer->GetBuffer(), lengthBytes);
 	s_pEmulatorAudioBuffer->Reset();
 }
 
@@ -358,12 +352,12 @@ static void updateAudio(double displayRefreshPeriodSeconds, double frameDeltaTim
 	if (s_audioSpam)
 	{
 		unsigned int numFrames = numSamples / kAudioChannelCount; // convert samples to frames
-		unsigned int numExpectedFrames = (unsigned int)(displayRefreshPeriodSeconds * AudioDevice::GetSampleRate()); // total number of frames to generate this update
-		LOG_INFO("Host::UpdateAudio: deltaTimeSeconds %.4f, numExpectedFrames %u, numFrames %u\n", displayRefreshPeriodSeconds, numExpectedFrames, numFrames);
+		//unsigned int numExpectedFrames = (unsigned int)(displayRefreshPeriodSeconds * AudioDevice::GetSampleRate()); // total number of frames to generate this update
+		//LOG_INFO("Host::UpdateAudio: deltaTimeSeconds %.4f, numExpectedFrames %u, numFrames %u\n", displayRefreshPeriodSeconds, numExpectedFrames, numFrames);
 	}
 
 	lengthBytes = numSamples * sizeof(int16_t); // total bytes (all channels)
-	AudioDevice::PutAudioStreamData(s_pEmulatorAudioBuffer->GetBuffer(), lengthBytes);
+	//AudioDevice::PutAudioStreamData(s_pEmulatorAudioBuffer->GetBuffer(), lengthBytes);
 	s_pEmulatorAudioBuffer->Reset();
 }
 
@@ -384,12 +378,15 @@ static void updateWindowTitle()
 	const CDROM& cdrom = s_bus.GetCDROM();
 	const char* gameName = cdrom.IsDiscInserted() ? cdrom.GetCD()->GetName() : "No disc";
 
+	// TODO
+	/*
 	ImGuiIO& io = ImGui::GetIO();
 	float frameTimeMs = 1000.0f / io.Framerate;
 
 	SafeSnprintf(title, sizeof(title), "HopStation | %s | %s | %.3f ms/frame | %.1f FPS", buildType, gameName, frameTimeMs, io.Framerate);
 
 	SDL_SetWindowTitle(s_pWindow, title);
+	*/
 }
 
 void Host::Update(double displayRefreshPeriodSeconds, double frameDeltaTimeSeconds)
@@ -440,18 +437,18 @@ void Host::Update(double displayRefreshPeriodSeconds, double frameDeltaTimeSecon
 
 void Host::Render(int y)
 {
-	if (!Renderer::Begin())
-		return; // application probably minimised
+	//if (!Renderer::Begin())
+		//return; // application probably minimised
 	
-	Renderer::BeginCopyPass();
-	if (s_drawDisplay)
-		Renderer::UploadTexture(s_pDisplayTexture);
-	if (s_drawVRAM)
-		Renderer::UploadTexture(s_pVramTexture);
-	Renderer::EndCopyPass();
+	//if (s_drawDisplay)
+	//Renderer::UploadTexture(s_pDisplayTexture);
+	//if (s_drawVRAM)
+		//Renderer::UploadTexture(s_pVramTexture);
+	//Renderer::EndCopyPass();
 
-	Renderer::BeginRenderPass();
+	//Renderer::BeginRenderPass();
 	int x = 0;
+	// TODO
 	if (s_drawDisplay)
 	{
 		const GPU& gpu = s_bus.GetGPU();
@@ -461,7 +458,7 @@ void Host::Render(int y)
 
 		// Don't draw whole texture - just draw visible region i.e. respect GPU display state
 		unsigned int w = gpu.GetHorizontalResolution();
-		SDL_Rect srcRect{ 0, 0, (int)w, (int)s_displayHeight}; // the display texture is generated such that (0,0) is the first visible pixel
+		//SDL_Rect srcRect{ 0, 0, (int)w, (int)s_displayHeight}; // the display texture is generated such that (0,0) is the first visible pixel
 
 		unsigned int displayScaleX = s_displayScale;
 		unsigned int displayScaleY = s_displayScale;
@@ -474,22 +471,22 @@ void Host::Render(int y)
 		unsigned int verticalResolution = gpu.GetVerticalResolution();
 		if (verticalResolution == 240) // NTSC height is either 240 or 480
 			displayScaleY *= 2;
-		SDL_Rect dstRect{ x, y, (int)(displayScaleX * w), (int)(displayScaleY * s_displayHeight) };
-		Renderer::DrawTexture(s_pDisplayTexture, &srcRect, &dstRect);
+		//SDL_Rect dstRect{ x, y, (int)(displayScaleX * w), (int)(displayScaleY * s_displayHeight) };
+		// TODO
+		//Renderer::DrawTexture(s_pDisplayTexture, );
 
-		y += dstRect.h;
+		//y += dstRect.h;
 
 		// leave a little gap between display and VRAM, otherwise it can be difficult to see where the display ends and VRAM begins.
-		y += 16;
+		//y += 16;
 	}
-	if (s_drawVRAM)
-	{
-		// Draw full texture unscaled
-		SDL_Rect dstRect{ x, y, (int)s_pVramTexture->GetWidth(), (int)s_pVramTexture->GetHeight() };
-		Renderer::DrawTexture(s_pVramTexture, /*pSrcRect*/nullptr, &dstRect);
-	}
-	Renderer::EndRenderPass();
-	Renderer::End();
+	//if (s_drawVRAM)
+	//{
+	//	// Draw full texture unscaled
+	//	SDL_Rect dstRect{ x, y, (int)s_pVramTexture->GetWidth(), (int)s_pVramTexture->GetHeight() };
+	//	Renderer::DrawTexture(s_pVramTexture, /*pSrcRect*/ // nullptr, &dstRect);
+	//}
+	//Renderer::End();
 }
 
 Bus& Host::GetBus()
@@ -522,3 +519,7 @@ float Host::GetCurrentAudioResamplingFrequencyRatio()
 	return s_currentAudioResamplingFrequencyRatio;
 }
 
+Texture* Host::GetDisplayTexture()
+{
+	return s_pDisplayTexture;
+}

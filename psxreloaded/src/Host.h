@@ -4,19 +4,19 @@
 #pragma once
 
 #include "core/ClassHelpers.h"
+#include "Texture.h" // TODO: remove
 
 class Bus;
 class CD;
 class TTYLogger;
 
-typedef struct SDL_Window SDL_Window;
 
 class Host
 {
 public:
 	NON_INSTANTIABLE_STATIC_CLASS(Host);
 
-	static bool Init(SDL_Window* pWindow, bool initAudio, const char* biosPath);
+	static bool Init(bool initAudio, const char* biosPath);
 	static void Shutdown();
 
 	// displayRefreshPeriodSeconds is fixed for display e.g. 1 / 60 = 0.0166 seconds
@@ -41,4 +41,7 @@ public:
 	static inline unsigned int s_displayScale = 1;
 	static inline bool s_drawVRAM = true;
 	static inline bool s_playTestTone = false;
+
+	// TODO: remove
+	static Texture* GetDisplayTexture();
 };

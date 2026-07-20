@@ -82,7 +82,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)/lib/;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -100,7 +100,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)/lib/;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -116,7 +116,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)/lib/;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -134,11 +134,21 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL3.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)/lib/;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="lib\include\XGUI\impl\xgui_impl_opengl.h" />
+    <ClInclude Include="lib\include\XGUI\xgui.h" />
+    <ClInclude Include="lib\include\XGUI\xgui_colors.h" />
+    <ClInclude Include="lib\include\XGUI\xgui_common.h" />
+    <ClInclude Include="lib\include\XGUI\xgui_core.h" />
+    <ClInclude Include="lib\include\XGUI\xgui_font.h" />
+    <ClInclude Include="lib\include\XGUI\xgui_image.h" />
+    <ClInclude Include="lib\include\XGUI\xgui_rendering_engine.h" />
+    <ClInclude Include="lib\include\XGUI\ximage.h" />
+    <ClInclude Include="lib\include\XGUI\xtruetype.h" />
     <ClInclude Include="src\AudioDevice.h" />
     <ClInclude Include="src\core\ArrayHelpers.h" />
     <ClInclude Include="src\core\ClassHelpers.h" />
@@ -151,32 +161,12 @@
     <ClInclude Include="src\core\RingBuffer.h" />
     <ClInclude Include="src\core\StringHelpers.h" />
     <ClInclude Include="src\core\Types.h" />
-    <ClInclude Include="src\GUI\CDROMWindow.h" />
-    <ClInclude Include="src\GUI\CDWindow.h" />
-    <ClInclude Include="src\GUI\CPUWindow.h" />
-    <ClInclude Include="src\GUI\DMAWindow.h" />
-    <ClInclude Include="src\GUI\GPUWindow.h" />
-    <ClInclude Include="src\GUI\HostWindow.h" />
-    <ClInclude Include="src\GUI\ImGuiDemoWindow.h" />
-    <ClInclude Include="src\GUI\ImGuiWrap.h" />
-    <ClInclude Include="src\GUI\InsertDiscDialog.h" />
-    <ClInclude Include="src\GUI\MemoryCardFileDialog.h" />
-    <ClInclude Include="src\GUI\MemoryCardWindow.h" />
-    <ClInclude Include="src\GUI\SideloadDialog.h" />
-    <ClInclude Include="src\GUI\SnapshotDialog.h" />
-    <ClInclude Include="src\GUI\SPUWindow.h" />
     <ClInclude Include="src\Host.h" />
     <ClInclude Include="src\HostAudioBuffer.h" />
-    <ClInclude Include="src\imgui\backends\imgui_impl_sdl3.h" />
-    <ClInclude Include="src\imgui\backends\imgui_impl_sdlgpu3.h" />
-    <ClInclude Include="src\imgui\backends\imgui_impl_sdlgpu3_shaders.h" />
-    <ClInclude Include="src\imgui\imconfig.h" />
-    <ClInclude Include="src\imgui\imgui.h" />
-    <ClInclude Include="src\imgui\imgui_internal.h" />
-    <ClInclude Include="src\imgui\imstb_rectpack.h" />
-    <ClInclude Include="src\imgui\imstb_textedit.h" />
-    <ClInclude Include="src\imgui\imstb_truetype.h" />
     <ClInclude Include="src\Input.h" />
+    <ClInclude Include="src\platform\gl_loader.h" />
+    <ClInclude Include="src\platform\platform.h" />
+    <ClInclude Include="src\platform\Win32Window.h" />
     <ClInclude Include="src\psx-utils\R3000Utils.h" />
     <ClInclude Include="src\psx-utils\Sideload.h" />
     <ClInclude Include="src\psx-utils\Snapshot.h" />
@@ -202,8 +192,9 @@
     <ClInclude Include="src\psx\SPU.h" />
     <ClInclude Include="src\psx\Timers.h" />
     <ClInclude Include="src\psx\Timing.h" />
-    <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\xgui\Filesystem.h" />
+    <ClInclude Include="src\xgui\GLMath.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AudioDevice.cpp" />
@@ -214,31 +205,13 @@
     <ClCompile Include="src\core\Parse.cpp" />
     <ClCompile Include="src\core\RingBuffer.cpp" />
     <ClCompile Include="src\core\StringHelpers.cpp" />
-    <ClCompile Include="src\GUI\CDROMWindow.cpp" />
-    <ClCompile Include="src\GUI\CDWindow.cpp" />
-    <ClCompile Include="src\GUI\CPUWindow.cpp" />
-    <ClCompile Include="src\GUI\DMAWindow.cpp" />
-    <ClCompile Include="src\GUI\GPUWindow.cpp" />
-    <ClCompile Include="src\GUI\HostWindow.cpp" />
-    <ClCompile Include="src\GUI\ImGuiDemoWindow.cpp" />
-    <ClCompile Include="src\GUI\ImGuiWrap.cpp" />
-    <ClCompile Include="src\GUI\InsertDiscDialog.cpp" />
-    <ClCompile Include="src\GUI\MemoryCardFileDialog.cpp" />
-    <ClCompile Include="src\GUI\MemoryCardWindow.cpp" />
-    <ClCompile Include="src\GUI\SideloadDialog.cpp" />
-    <ClCompile Include="src\GUI\SnapshotDialog.cpp" />
-    <ClCompile Include="src\GUI\SPUWindow.cpp" />
-    <ClCompile Include="src\HopStation.cpp" />
+    <ClCompile Include="src\platform\Win32Window.cpp" />
+    <ClCompile Include="src\PSXReloaded.cpp" />
     <ClCompile Include="src\Host.cpp" />
     <ClCompile Include="src\HostAudioBuffer.cpp" />
-    <ClCompile Include="src\imgui\backends\imgui_impl_sdl3.cpp" />
-    <ClCompile Include="src\imgui\backends\imgui_impl_sdlgpu3.cpp" />
-    <ClCompile Include="src\imgui\imgui.cpp" />
-    <ClCompile Include="src\imgui\imgui_demo.cpp" />
-    <ClCompile Include="src\imgui\imgui_draw.cpp" />
-    <ClCompile Include="src\imgui\imgui_tables.cpp" />
-    <ClCompile Include="src\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\Input.cpp" />
+    <ClCompile Include="src\platform\gl_loader.c" />
+    <ClCompile Include="src\platform\platform_win32.c" />
     <ClCompile Include="src\psx-utils\R3000Utils.cpp" />
     <ClCompile Include="src\psx-utils\Sideload.cpp" />
     <ClCompile Include="src\psx-utils\Snapshot.cpp" />
@@ -263,8 +236,11 @@
     <ClCompile Include="src\psx\SIO.cpp" />
     <ClCompile Include="src\psx\SPU.cpp" />
     <ClCompile Include="src\psx\Timers.cpp" />
-    <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\xgui\XGUI\impl\xgui_impl_opengl.cpp" />
+    <ClCompile Include="src\xgui\XGUI\xgui_core.cpp" />
+    <ClCompile Include="src\xgui\XGUI\xgui_font.cpp" />
+    <ClCompile Include="src\xgui\XGUI\xgui_image.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

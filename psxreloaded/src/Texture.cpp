@@ -1,56 +1,39 @@
 #include "Texture.h"
-
 #include "Renderer.h"
-
 #include "core/hp_assert.h"
+#include <platform/gl_loader.h>
 
-#include <SDL3/SDL_gpu.h>
+// TODO
 
 Texture::Texture(unsigned int width, unsigned int height, const char* name)
 	: m_width(width)
 	, m_height(height)
-	, m_format(SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM) // Wanted to use SDL_GPU_TEXTUREFORMAT_B5G5R5A1_UNORM to avoid PSX to host GPU conversion, but infortunately the RGB components are the other way round.
 	, m_bytesPerPixel(4)
 
 {
-	SDL_GPUDevice* pDevice = Renderer::GetDevice();
+	glGenTextures(1, &m_glTexture);
+	glBindTexture(GL_TEXTURE_2D, m_glTexture);
 
-	// Create texture
-	SDL_GPUTextureCreateInfo textureCreateInfo{};
-	textureCreateInfo.type = SDL_GPU_TEXTURETYPE_2D;
-	textureCreateInfo.format = m_format;
-	textureCreateInfo.width = width;
-	textureCreateInfo.height = height;
-	textureCreateInfo.layer_count_or_depth = 1;
-	textureCreateInfo.num_levels = 1;
-	textureCreateInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-	m_pTexture = SDL_CreateGPUTexture(pDevice, &textureCreateInfo);
-	HP_ASSERT(m_pTexture, "SDL_CreateGPUTexture() failed: %s\n", SDL_GetError());
 
-	if (name && name[0])
-		SDL_SetGPUTextureName(pDevice, m_pTexture, name); // not thread safe
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	// Create a staging buffer to upload the texture data.
-	SDL_GPUTransferBufferCreateInfo uploadBufferInfo{};
-	uploadBufferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-	uploadBufferInfo.size = width * height * m_bytesPerPixel;
-	m_pTextureUploadBuffer = SDL_CreateGPUTransferBuffer(pDevice, &uploadBufferInfo);
-	HP_ASSERT(m_pTextureUploadBuffer, "SDL_CreateGPUTransferBuffer() failed: %s\n", SDL_GetError());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 Texture::~Texture()
 {
-	SDL_GPUDevice* pDevice = Renderer::GetDevice();
-	SDL_ReleaseGPUTransferBuffer(pDevice, m_pTextureUploadBuffer);
-	SDL_ReleaseGPUTexture(pDevice, m_pTexture);
+	glDeleteTextures(1, &m_glTexture);
 }
 
-void Texture::CopyImageDataToTransferBuffer(const void* data)
+void Texture::Upload(const void* data)
 {
-	SDL_GPUDevice* pDevice = Renderer::GetDevice();
-
-	void* pTextureData = SDL_MapGPUTransferBuffer(pDevice, m_pTextureUploadBuffer, false);
-	HP_ASSERT(pTextureData, "SDL_MapGPUTransferBuffer() failed: %s\n", SDL_GetError());
-	SDL_memcpy(pTextureData, data, m_width * m_height * m_bytesPerPixel);
-	SDL_UnmapGPUTransferBuffer(pDevice, m_pTextureUploadBuffer);
+	glBindTexture(GL_TEXTURE_2D, m_glTexture);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

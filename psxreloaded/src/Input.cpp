@@ -7,7 +7,8 @@
 #include "core/Helpers.h" // HP_UNUSED, ENUM_COUNT
 #include "core/MathsHelpers.h"
 
-#include <SDL3/SDL.h> // Use SDL2 for platform independent input
+//#include <SDL3/SDL.h> // Use SDL2 for platform independent input
+// TODO
 
 #include <stdlib.h> // abs
 #include <math.h> // fabs
@@ -40,6 +41,7 @@ struct Controller
 {
 	static const int kInvalidInstanceId = 0; // SDL_JoystickID value 0 is an invalid ID.
 
+	/*
 	SDL_Joystick* pJoystick = nullptr;
 	SDL_Gamepad* pGamepad = nullptr;
 	SDL_JoystickID instanceId = kInvalidInstanceId;
@@ -49,10 +51,11 @@ struct Controller
 
 	Sint16 axisValue[SDL_GAMEPAD_AXIS_COUNT];
 	Sint16 axisValuePrevFrame[SDL_GAMEPAD_AXIS_COUNT];
+	*/
 };
 
 //-------------------------------------------------------------------------------------------------------
-
+/*
 static bool s_keyState[SDL_SCANCODE_COUNT];
 static bool s_keyDownThisFrame[SDL_SCANCODE_COUNT]; // was up, now down
 static bool s_keyReleasedThisFrame[SDL_SCANCODE_COUNT]; // was down, now released
@@ -714,3 +717,4 @@ void Input::HandleSDLEvent(const SDL_Event& event)
 }
 
 #pragma endregion "SDL Event Handlers"
+*/

@@ -2,11 +2,13 @@
 
 #include "core/ClassHelpers.h"
 
+// TODO
+
 //#include <SDL3/SDL.h> // Removed - don't want to include SDL.h in this header otherwise anything that includes it will also include SDL.h.
 //#include "SDL_Scancode.h" // can't foward declare SDL_Scancode. Removed - doesn't work on Linux
 
 // forward declarations
-union SDL_Event;
+//union SDL_Event;
 
 // Matching SDL codes to avoid including SDL headers
 #define KEYBOARD_SCANCODE_A 4
@@ -117,7 +119,8 @@ public:
 
 	// SDL event handler
 	// Call this from within  while (SDL_PollEvent(&event)) {} loop each frame
-	static void HandleSDLEvent(const SDL_Event& event);
+	// TODO
+	//static void HandleSDLEvent(const SDL_Event& event);
 
 	// Pass SDL_Scancode enum values to this function
 	static bool GetKeyState(unsigned int scancode);
