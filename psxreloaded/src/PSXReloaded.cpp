@@ -179,6 +179,18 @@ xgui::InputState pollEventsAndGetKeyboard()
 	return input;
 }
 
+void resizeCallback(int width, int height)
+{
+	auto& ctx = xgui::Context::get();
+	ctx.screen_width = (float)width;
+	ctx.screen_height = (float)height;
+
+	ctx.projection_updated_map.values[0] = false; // Rebuild projection matrix
+	ctx.projection_updated_map.values[1] = false;
+	ctx.projection_updated_map.values[2] = false;
+	ctx.projection_updated_map.values[3] = false;
+}
+
 // -----
 
 static void printUsage()
@@ -338,41 +350,44 @@ static inline u8 stickFloatToU8(float val)
 	return ret;
 }
 
-static void inputCallback(void* /*userdata*/)
+static void handleInput()
 {
-	/*
+	// TODO: actual input layer
+	const xgui::InputState& input = xgui::Context::get().input;
+
 	const HostControllerInput hostController0_prev = s_hostInput.controllers[0];
 
 	HostControllerInput& hostController0 = s_hostInput.controllers[0];
-	hostController0.buttonSelect = Input::GetKeyState(SDL_SCANCODE_BACKSPACE) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_BACK);
-	hostController0.buttonL3 = Input::GetKeyState(SDL_SCANCODE_LCTRL) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_LEFT_STICK);
-	hostController0.buttonR3 = Input::GetKeyState(SDL_SCANCODE_RCTRL) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
-	hostController0.buttonStart = Input::GetKeyState(SDL_SCANCODE_RETURN) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_START);
-	hostController0.joypadUp = Input::GetKeyState(SDL_SCANCODE_UP) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_DPAD_UP);
-	hostController0.joypadRight = Input::GetKeyState(SDL_SCANCODE_RIGHT) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
-	hostController0.joypadDown = Input::GetKeyState(SDL_SCANCODE_DOWN) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
-	hostController0.joypadLeft = Input::GetKeyState(SDL_SCANCODE_LEFT) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_DPAD_LEFT);
-	if (s_hostLeftAnalogueStickToDpadInDigitalMode[0] && Host::GetBus().GetSIO().GetPort(0).GetController().GetType() == Controller::Type::Digital)
-	{
-		hostController0.joypadUp |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) < -0.5f;;
-		hostController0.joypadRight |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX) > 0.5f;
-		hostController0.joypadDown |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) > 0.5f;
-		hostController0.joypadLeft |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX) < -0.5f;
-	}
-	hostController0.buttonL2 = Input::GetKeyState(SDL_SCANCODE_2) || Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 0.5f;
-	hostController0.buttonR2 = Input::GetKeyState(SDL_SCANCODE_4) || Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 0.5f;
-	hostController0.buttonL1 = Input::GetKeyState(SDL_SCANCODE_1) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
-	hostController0.buttonR1 = Input::GetKeyState(SDL_SCANCODE_3) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
-	hostController0.buttonNorth = Input::GetKeyState(SDL_SCANCODE_E) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_NORTH); // PlayStation Triangle / Nintendo Y / Xbox Y
-	hostController0.buttonEast = Input::GetKeyState(SDL_SCANCODE_D) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_EAST);  // PlayStation Circle / Nintendo A / Xbox B
-	hostController0.buttonSouth = Input::GetKeyState(SDL_SCANCODE_X) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_SOUTH); // PlayStation Cross / Nintendo B / Xbox A
-	hostController0.buttonWest = Input::GetKeyState(SDL_SCANCODE_S) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_WEST);  // PlayStation Square / Nintendo X / Xbox X
-	hostController0.m_leftStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX);
-	hostController0.m_leftStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY);
-	hostController0.m_rightStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTX);
-	hostController0.m_rightStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTY);
+	hostController0.buttonSelect = input.key_shift;
+	//hostController0.buttonL3 = ;
+	//hostController0.buttonR3 = Input::GetKeyState(SDL_SCANCODE_RCTRL) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
+	hostController0.buttonStart = input.key_enter;
+	hostController0.joypadUp = m_keys['W'];
+	hostController0.joypadRight = m_keys['D'];
+	hostController0.joypadDown = m_keys['S'];
+	hostController0.joypadLeft = m_keys['A'];
+	//if (s_hostLeftAnalogueStickToDpadInDigitalMode[0] && Host::GetBus().GetSIO().GetPort(0).GetController().GetType() == Controller::Type::Digital)
+	//{
+	//	hostController0.joypadUp |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) < -0.5f;;
+	//	hostController0.joypadRight |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX) > 0.5f;
+	//	hostController0.joypadDown |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) > 0.5f;
+	//	hostController0.joypadLeft |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX) < -0.5f;
+	//}
+	hostController0.buttonL2 = m_keys['2'];
+	hostController0.buttonR2 = m_keys['9'];
+	hostController0.buttonL1 = m_keys['1'];
+	hostController0.buttonR1 = m_keys['0'];
+	hostController0.buttonNorth = m_keys[VK_UP]; // PlayStation Triangle / Nintendo Y / Xbox Y
+	hostController0.buttonEast = m_keys[VK_RIGHT];  // PlayStation Circle / Nintendo A / Xbox B
+	hostController0.buttonSouth = m_keys[VK_DOWN]; // PlayStation Cross / Nintendo B / Xbox A
+	hostController0.buttonWest = m_keys[VK_LEFT];  // PlayStation Square / Nintendo X / Xbox X
+	//hostController0.m_leftStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX);
+	//hostController0.m_leftStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY);
+	//hostController0.m_rightStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTX);
+	//hostController0.m_rightStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTY);
 
 	// #TODO: Implement second controller input
+	/*
 	const HostControllerInput hostController1_prev = s_hostInput.controllers[1];
 	HostControllerInput& hostController1 = s_hostInput.controllers[1];
 	hostController1.buttonSelect = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_BACK);
@@ -402,6 +417,7 @@ static void inputCallback(void* /*userdata*/)
 	hostController1.m_leftStickY = Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_LEFTY);
 	hostController1.m_rightStickX = Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_RIGHTX);
 	hostController1.m_rightStickY = Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_RIGHTY);
+	*/
 
 	// Pass input state changes to emulator
 	SIO& sio = Host::GetBus().GetSIO();
@@ -448,6 +464,7 @@ static void inputCallback(void* /*userdata*/)
 	if (hostController0.m_rightStickY != hostController0_prev.m_rightStickY)
 		controller0.SetRightJoyY(stickFloatToU8(hostController0.m_rightStickY));
 
+	/*
 	Controller& controller1 = sio.GetPort(1).GetController();
 	if (hostController1.buttonSelect != hostController1_prev.buttonSelect)
 		hostController1.buttonSelect ? controller1.DigitalSwitchDown(Controller::DigitalSwitch::SelectButton) : controller1.DigitalSwitchUp(Controller::DigitalSwitch::SelectButton);
@@ -750,6 +767,40 @@ static void updateGUI()
 	*/
 }
 
+static void displayEmulatorView()
+{
+	auto& ctx = xgui::Context::get();
+
+	float menuHeight = s_mainMenuBarVisible ? 20.0f : 0.0f;
+
+	float availX = 0.0f;
+	float availY = menuHeight;
+	float availW = ctx.screen_width;
+	float availH = ctx.screen_height - menuHeight;
+
+	constexpr float targetAspect = 4.0f / 3.0f;
+
+	float viewportW = availW;
+	float viewportH = viewportW / targetAspect;
+
+	if (viewportH > availH)
+	{
+		viewportH = availH;
+		viewportW = viewportH * targetAspect;
+	}
+
+	float viewportX = availX + (availW - viewportW) * 0.5f;
+	float viewportY = availY + (availH - viewportH) * 0.5f;
+
+	xgui::imageView(
+		Host::GetDisplayTexture()->GetGLTexture(),
+		viewportX + viewportW * 0.5f,
+		viewportY + viewportH * 0.5f,
+		viewportW,
+		viewportH
+	);
+}
+
 int main(int argc, char** argv)
 {
 	CommandLineArgs commandLineArgs;
@@ -788,27 +839,13 @@ int main(int argc, char** argv)
 
 	window->Show();
 	window->SetKeyCallback(keyboardCallback);
-
-	// TODO: Center window
-
-	//Input::Init();
-
-	//Input::SetInputCallback(inputCallback, &s_hostInput);
+	window->SetWindowResizeAndRenderDuringResizeCallback(resizeCallback);
 
 	if (!Host::Init(/* audioSubSystemInitialised */ false, commandLineArgs.biosPath))
 	{
 		LOG_ERROR("Failed to initialise host\n");
 		return EXIT_FAILURE;
 	}
-
-	/*
-	const float displayScale = SDL_GetDisplayContentScale(displayID);
-	if (!ImGuiWrap::Init(pWindow, Renderer::GetDevice(), commandLineArgs.respectDisplayDpiScale ? displayScale : 1.0f))
-	{
-		LOG_ERROR("ImGuiWrap::Init() failed\n");
-		return EXIT_FAILURE;
-	}
-	*/
 
 	// Connect a controller to port 0
 	// #TODO: Make this a command line option or load from settings
@@ -858,8 +895,8 @@ int main(int argc, char** argv)
 
 	ctx.style = style;
 
-	ctx.screen_width = (float)windowWidth;
-	ctx.screen_height = (float)windowHeight;
+	ctx.screen_width = (float)window->GetWidth();
+	ctx.screen_height = (float)window->GetHeight();
 
 	ctx.projection_updated_map.values[0] = false; // Rebuild projection matrix
 	ctx.projection_updated_map.values[1] = false;
@@ -875,47 +912,94 @@ int main(int argc, char** argv)
 		xgui::InputState input = pollEventsAndGetKeyboard();
 
 		xgui::beginFrame(input);
+
+		handleInput();
 		//Input::FrameStart();
 
-		f32 menu_item_x_off = 0.0f;
-
-		xgui::menuBar(20.0f);
-		if (xgui::menuBarItem("Emulator Settings", &menu_item_x_off)) {
-			//fileMenuOpen = !fileMenuOpen;
-		}
-
-		xgui::beginWindow("XGUI Demo Window", 200.0f, 200.0f, 300.0f, 250.0f, true);
-
-		xgui::WindowedUILayout wlayout{};
-		wlayout.UIbegin(0.8f, 20.0f);
-
-		if (wlayout.UIbutton("Button", 25.0f))
+		if (s_mainMenuBarVisible)
 		{
-			printf("Button pressed!\n");
+			f32 file_menu_x_off = 0.0f;
+
+			static bool fileMenuOpen = false;
+
+			xgui::menuBar(20.0f);
+			if (xgui::menuBarItem("File", &file_menu_x_off)) {
+				fileMenuOpen = !fileMenuOpen;
+			}
+
+			if (fileMenuOpen)
+			{
+				//// File
+	//if (ImGui::BeginMenu("File"))
+	//{
+	//	if (ImGui::MenuItem("Insert disc..."))
+	//	{
+	//		// This call returns immediately
+	//		InsertDiscDialog::ShowOpenFileDialog(pWindow);
+	//	}
+	//	if (ImGui::MenuItem("Eject disc", /*shortcut*/nullptr, /*selected*/false, /*enabled*/bus.GetCDROM().IsDiscInserted()))
+	//	{
+	//		bus.GetCDROM().EjectDisc();
+	//	}
+	//	if (ImGui::MenuItem("Sideload executable..."))
+	//	{
+	//		// This call returns immediately
+	//		SideloadDialog::ShowOpenFileDialog(pWindow);
+	//	}
+	//	ImGui::Separator();
+	//	if (ImGui::MenuItem("Save display..."))
+	//	{
+	//		const GPU& gpu = bus.GetGPU();
+	//		SnapshotDialog::ShowSaveFileDialog(pWindow, gpu.GetDisplayStartX(), gpu.GetDisplayStartY(), gpu.GetHorizontalResolution(), gpu.GetVerticalResolution(), gpu.GetDisplayFormat());
+	//	}
+	//	if (ImGui::MenuItem("Save VRAM (16 bpp)..."))
+	//	{
+	//		SnapshotDialog::ShowSaveFileDialog(pWindow, 0, 0, kVRAMWidth16bpp, kVRAMHeightLines, DisplayFormat::A1B5G5R5);
+	//	}
+	//	if (ImGui::MenuItem("Save VRAM (24 bpp)..."))
+	//	{
+	//		static constexpr unsigned int kVRAMWidth24bpp = kVRAMWidthBytes / 3; // 682.66 rounded down to 682
+	//		SnapshotDialog::ShowSaveFileDialog(pWindow, 0, 0, kVRAMWidth24bpp, kVRAMHeightLines, DisplayFormat::B8G8R8);
+	//	}
+	//	ImGui::Separator();
+	//	if (ImGui::MenuItem("Exit"))
+	//		s_quit = true;
+	//	ImGui::EndMenu();
+	//}
+				static xgui::MenuItem saveSubmenu[] = {
+					{ "Save display..." },
+					{ "Save VRAM 16 bpp" },
+					{ "Save VRAM 24 bpp" },
+				};
+
+				static xgui::MenuItem fileMenu[] = {
+					{ "Insert disc..." },
+					{ "Eject disc" },
+					{ "Sideload executable..." },
+					{ "Screen capture", saveSubmenu, _countof(saveSubmenu) },
+					{ "Exit" }
+				};
+
+				int selected = xgui::menu(fileMenu, _countof(fileMenu), file_menu_x_off, ctx.current_menu_bar.height);
+				if (selected != -1) {
+					int parent = XGUI_MENUBAR_PARENT(selected);
+					int child = XGUI_MENUBAR_CHILD(selected);
+
+					// TODO:
+
+					fileMenuOpen = false;
+				}
+			}
+
+			if (ctx.active_id == 0 && ctx.hot_id == 0 && ctx.input.mouse_down[0])
+			{
+				fileMenuOpen = false;
+			}
 		}
 
-		static float volume = 0.5f;
-		wlayout.UIslider("Slider", &volume, 0.0f, 1.0f, 25.0f);
-
-		static char buffer[250];
-		wlayout.UItextbox("Textbox##popup", &buffer[0], 250, 25.0f);
-
-		static bool toggle = false;
-		wlayout.UIcheckbox("Checkbox", &toggle, 25.0f);
-
-		char cbuffer[50];
-
-		snprintf(cbuffer, sizeof(cbuffer), "Window Content Height: %.3f", ctx.current_window->content_height);
-		wlayout.UItext(cbuffer, 25.0f);
-
-		wlayout.UIend();
-
-		xgui::endWindow();
-
-		xgui::imageView(Host::GetDisplayTexture()->GetGLTexture(), 640.0f / 2.0f, /* menu bar height */ 20.0f + (480.0f / 2.0f), 640.0f, 480.0f);
+		displayEmulatorView();
 
 		s_quit = window->ShouldClose();
-		//Input::HandleSDLEvent(event);
 
 		bool ctrl = input.key_ctrl;
 		bool shift = input.key_shift;
@@ -926,7 +1010,7 @@ int main(int argc, char** argv)
 			s_quit = true;
 		}
 
-		if (m_keys[VK_TAB] && !ctrl && !shift)
+		if (input.key_ctrl && !shift)
 			s_mainMenuBarVisible = !s_mainMenuBarVisible;
 
 		if (m_keys['P'])
@@ -937,8 +1021,6 @@ int main(int argc, char** argv)
 				Host::ResetEmulator();
 		}
 
-		//ImGuiWrap::NewFrame();
-
 		double currentTime = window->GetTime();
 		double frameTimeSeconds = currentTime - prevTime;
 		prevTime = currentTime;
@@ -946,12 +1028,7 @@ int main(int argc, char** argv)
 		if (frameTimeSeconds > 0.5)
 			frameTimeSeconds = 1.0 / 170.0; // Probably debugging.
 
-		unsigned int menuBarHeight = 0;
-		// TODO
-		//if (s_mainMenuBarVisible)
-			//menuBarHeight = showMainMenuBar(pWindow);
-
-		Host::Update(/* displayFramePeriodSeconds */ 0.0058823529411765, frameTimeSeconds);
+		Host::Update(/* displayFramePeriodSeconds */ 1.0 / 60.0, frameTimeSeconds);
 		//updateGUI();
 		//Host::Render(menuBarHeight);
 
@@ -972,7 +1049,6 @@ int main(int argc, char** argv)
 	xgui::shutdown();
 	Host::Shutdown();
 
-	//Input::Shutdown();
 	delete window;
 
 	return EXIT_SUCCESS;
