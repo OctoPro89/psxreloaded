@@ -286,8 +286,6 @@ static void updateDisplayTexture()
 		VRAMConvert::ConvertToR8G8B8A8_UNORM(vram, srcRect, gpu.GetDisplayFormat(), s_displayImageData, dstRect, s_pDisplayTexture->GetWidth(), s_pDisplayTexture->GetHeight());
 	}
 
-	// #TODO: Is it a race condition to call Texture::CopyImageDataToTransferBuffer and copy data into the transfer buffer while GPU is running? Should this be called within the render phase?
-	//s_pDisplayTexture->CopyImageDataToTransferBuffer(s_displayImageData);
 	s_pDisplayTexture->Upload(s_displayImageData);
 }
 

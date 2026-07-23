@@ -235,6 +235,9 @@ namespace xgui
     // Open a file picker
     XAPI char* filePicker(const char* title, const char* filter);
 
+    // Open a file picker to a save location
+    XAPI char* saveFilePicker(const char* title, const char* filter, const char* defaultExtension);
+
     // Helper functions
     namespace internal
     {
@@ -244,6 +247,7 @@ namespace xgui
         XAPI void setClipboardText(const std::string& text);
 
         XAPI char* openFileDialog(const char* title, const char* filter);
+        XAPI char* saveFileDialog(const char* title, const char* filter, const char* defaultExtension);
 
         XAPI u32 hashString(const char* str);
         XAPI bool isPointInRect(f32 x, f32 y, const Rect& rect);

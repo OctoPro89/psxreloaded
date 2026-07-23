@@ -31,6 +31,7 @@ bool MenuBar::Update(bool s_mainMenuBarVisible)
 		static bool infoMenuOpen = false;
 		static bool emulatorMenuOpen = false;
 		static bool controllersMenuOpen = false;
+		static bool memoryCardsMenuOpen = false;
 		static bool failedPopupOpen = false;
 		static const char* errorMsg = NULL;
 
@@ -58,6 +59,12 @@ bool MenuBar::Update(bool s_mainMenuBarVisible)
 		if (xgui::menuBarItem("Controllers", &controllers_menu_x_off))
 		{
 			controllersMenuOpen = !controllersMenuOpen;
+		}
+
+		f32 memory_cards_menu_x_off = controllers_menu_x_off;
+		if (xgui::menuBarItem("Memory Cards", &memory_cards_menu_x_off))
+		{
+			memoryCardsMenuOpen = !memoryCardsMenuOpen;
 		}
 
 		if (fileMenuOpen)
@@ -88,7 +95,7 @@ bool MenuBar::Update(bool s_mainMenuBarVisible)
 				{
 				case 0:
 				{
-					if (const char* fp = xgui::filePicker("Insert disc...", "Raw Binary\0*.bin\0Cue Sheets\0*.cue\0All Files\0*.*\0\0"))
+					if (const char* fp = xgui::filePicker("Insert disc...", "Raw Binary (*.bin)\0*.bin\0Cue Sheets (*.cue)\0*.cue\0All Files\0*.*\0\0"))
 					{
 						CD& cd = Host::GetCD();
 						if (!cd.LoadFromFile(fp))
@@ -237,10 +244,120 @@ bool MenuBar::Update(bool s_mainMenuBarVisible)
 			xgui::endWindow();
 		}
 
+		if (memoryCardsMenuOpen)
+		{
+			SIO& sio = Host::GetBus().GetSIO();
+
+			static xgui::MenuItem memoryCardSubmenu[] = {
+				{ "Load..." },
+				{ "Save..." },
+				{ "Insert" },
+				{ "Eject" },
+				{ "Format" }
+			};
+
+			static xgui::MenuItem fileMenu[] = {
+				{ "Slot 1", memoryCardSubmenu, _countof(memoryCardSubmenu) },
+				{ "Slot 2", memoryCardSubmenu, _countof(memoryCardSubmenu) }
+			};
+
+			int selected = xgui::menu(fileMenu, _countof(fileMenu), memory_cards_menu_x_off, ctx.current_menu_bar.height);
+			if (selected != -1) {
+				int parent = XGUI_MENUBAR_PARENT(selected);
+				int child = XGUI_MENUBAR_CHILD(selected);
+
+				if (parent == 0)
+				{
+					ControllerPort& port = sio.GetPort(0);
+					MemoryCard& card = port.GetMemoryCard();
+					switch (child)
+					{
+					case 0:
+						if (const char* fp = xgui::filePicker("Load memory card...", "PSX Memory Cards (*.mcd, *.mc, *.mcr)\0*.mcd;*.mc;*.mcr\0Cue Sheets\0*.cue\0All Files\0*.*\0\0"))
+						{
+							if (card.LoadFromFile(fp))
+							{
+								if (!port.IsMemoryCardInserted()) { port.SetMemoryCardInserted(true); }
+							}
+							else
+							{
+								errorMsg = "Failed to load memory card!";
+								failedPopupOpen = true;
+							}
+						}
+						break;
+					case 1:
+						if (const char* fp = xgui::saveFilePicker("Save memory card...", "PSX Memory Cards (*.mcd, *.mc, *.mcr)\0*.mcd;*.mc;*.mcr\0Cue Sheets\0*.cue\0All Files\0*.*\0\0", "mcd"))
+						{
+							if (!card.SaveToFile(fp))
+							{
+								errorMsg = "Failed to save memory card!";
+								failedPopupOpen = true;
+							}
+						}
+						break;
+					case 2:
+						port.SetMemoryCardInserted(true);
+						break;
+					case 3:
+						port.SetMemoryCardInserted(false);
+						break;
+					case 4:
+						card.Format();
+						break;
+					}
+				}
+				else if (parent == 1)
+				{
+					ControllerPort& port = sio.GetPort(1);
+					MemoryCard& card = port.GetMemoryCard();
+					switch (child)
+					{
+					case 0:
+						if (const char* fp = xgui::filePicker("Load memory card...", "PSX Memory Cards (*.mcd, *.mc, *.mcr)\0*.mcd;*.mc;*.mcr\0Cue Sheets\0*.cue\0All Files\0*.*\0\0"))
+						{
+							if (card.LoadFromFile(fp))
+							{
+								if (!port.IsMemoryCardInserted()) { port.SetMemoryCardInserted(true); }
+							}
+							else
+							{
+								errorMsg = "Failed to load memory card!";
+								failedPopupOpen = true;
+							}
+						}
+						break;
+					case 1:
+						if (const char* fp = xgui::saveFilePicker("Save memory card...", "PSX Memory Cards (*.mcd, *.mc, *.mcr)\0*.mcd;*.mc;*.mcr\0Cue Sheets\0*.cue\0All Files\0*.*\0\0", "mcd"))
+						{
+							if (!card.SaveToFile(fp))
+							{
+								errorMsg = "Failed to save memory card!";
+								failedPopupOpen = true;
+							}
+						}
+						break;
+					case 2:
+						port.SetMemoryCardInserted(true);
+						break;
+					case 3:
+						port.SetMemoryCardInserted(false);
+						break;
+					case 4:
+						card.Format();
+						break;
+					}
+				}
+
+				emulatorMenuOpen = false;
+			}
+		}
+
 		if (ctx.active_id == 0 && ctx.hot_id == 0 && ctx.input.mouse_down[0])
 		{
 			fileMenuOpen = false;
 			emulatorMenuOpen = false;
+			memoryCardsMenuOpen = false;
 		}
 
 		if (failedPopupOpen)

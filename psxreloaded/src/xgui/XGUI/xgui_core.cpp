@@ -1250,6 +1250,11 @@ namespace xgui
         return internal::openFileDialog(title, filter);
     }
 
+    char* saveFilePicker(const char* title, const char* filter, const char* defaultExtension)
+    {
+        return internal::saveFileDialog(title, filter, defaultExtension);
+    }
+
     namespace internal
     {
         f32 getTextWidth(const char* text)
@@ -1324,15 +1329,38 @@ namespace xgui
             ofn.lpstrFile = file_dialog_filename;
             ofn.nMaxFile = MAX_PATH;
 
+            file_dialog_filename[0] = '\0';
             ofn.lpstrFilter = filter;
 
-            ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+            ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
             ofn.lpstrTitle = title;
 
             if (GetOpenFileNameA(&ofn))
                 return file_dialog_filename;
 
             return NULL;
+        }
+
+        char* saveFileDialog(const char* title, const char* filter, const char* defaultExtension)
+        {
+            OPENFILENAMEA ofn{};
+            ofn.lStructSize = sizeof(ofn);
+            ofn.hwndOwner = NULL;
+            ofn.lpstrFile = file_dialog_filename;
+            ofn.nMaxFile = MAX_PATH;
+
+            file_dialog_filename[0] = '\0';
+
+            ofn.lpstrFilter = filter;
+            ofn.lpstrTitle = title;
+            ofn.lpstrDefExt = defaultExtension;
+
+            ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
+
+            if (GetSaveFileNameA(&ofn))
+                return file_dialog_filename;
+
+            return nullptr;
         }
 #endif 
 

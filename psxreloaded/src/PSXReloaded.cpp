@@ -352,12 +352,10 @@ static inline u8 stickFloatToU8(float val)
 static void handleInput()
 {
 	// TODO: actual input layer, controller input fr
-	const xgui::InputState& input = xgui::Context::get().input;
-
 	const HostControllerInput hostController0_prev = s_hostInput.controllers[0];
 
 	HostControllerInput& hostController0 = s_hostInput.controllers[0];
-	hostController0.buttonSelect = input.key_shift;
+	hostController0.buttonSelect = m_keys[VK_SHIFT];
 	//hostController0.buttonL3 = ;
 	//hostController0.buttonR3 = Input::GetKeyState(SDL_SCANCODE_RCTRL) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
 	hostController0.buttonStart = m_keys[VK_RETURN];
