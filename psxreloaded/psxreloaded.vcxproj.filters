@@ -132,7 +132,7 @@
     <ClInclude Include="src\HostAudioBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Input.h">
+    <ClInclude Include="src\platform\ControllerInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Texture.h">
@@ -299,7 +299,7 @@
     <ClCompile Include="src\HostAudioBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Input.cpp">
+    <ClCompile Include="src\platform\ControllerInput.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Texture.cpp">

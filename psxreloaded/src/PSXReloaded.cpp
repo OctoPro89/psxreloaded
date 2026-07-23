@@ -16,7 +16,6 @@
 
 #include "Host.h"
 #include "Renderer.h"
-#include "Input.h"
 
 #include "psx-utils/Sideload.h"
 
@@ -27,6 +26,7 @@
 #include "core/StringHelpers.h"
 #include "core/Helpers.h" // HP_UNUSED
 
+#include "platform/ControllerInput.h"
 #include "platform/Win32Window.h"
 #include "platform/gl_loader.h"
 
@@ -98,7 +98,7 @@ bool right = false;
 bool backspace = false;
 bool del = false;
 
-const bool* m_keys = NULL;
+extern const bool* m_keys = NULL;
 
 Win32Window* window{};
 
@@ -353,9 +353,8 @@ static void handleInput()
 {
 	// TODO: actual input layer, controller input fr
 	const HostControllerInput hostController0_prev = s_hostInput.controllers[0];
-
 	HostControllerInput& hostController0 = s_hostInput.controllers[0];
-	hostController0.buttonSelect = m_keys[VK_SHIFT];
+	//hostController0.buttonSelect = m_keys[VK_SHIFT];
 	//hostController0.buttonL3 = ;
 	//hostController0.buttonR3 = Input::GetKeyState(SDL_SCANCODE_RCTRL) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
 	hostController0.buttonStart = m_keys[VK_RETURN];
@@ -384,9 +383,9 @@ static void handleInput()
 	//hostController0.m_rightStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTY);
 
 	// #TODO: Implement second controller input
-	/*
 	const HostControllerInput hostController1_prev = s_hostInput.controllers[1];
 	HostControllerInput& hostController1 = s_hostInput.controllers[1];
+	/*
 	hostController1.buttonSelect = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_BACK);
 	hostController1.buttonL3 = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_LEFT_STICK);
 	hostController1.buttonR3 = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
@@ -415,6 +414,46 @@ static void handleInput()
 	hostController1.m_rightStickX = Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_RIGHTX);
 	hostController1.m_rightStickY = Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_RIGHTY);
 	*/
+
+	// Do controller input after if connected
+	// TODO: Controller UI, rumble
+	const InputState* controller = controller_input_get_controller(0);
+	if (controller->connected)
+	{
+		hostController0.buttonSelect = controller->buttons[BUTTON_SELECT];
+		hostController0.buttonStart = controller->buttons[BUTTON_START];
+
+		hostController0.joypadUp = controller->buttons[BUTTON_UP];
+		hostController0.joypadRight = controller->buttons[BUTTON_RIGHT];
+		hostController0.joypadDown = controller->buttons[BUTTON_DOWN];
+		hostController0.joypadLeft = controller->buttons[BUTTON_LEFT];
+
+		if (s_hostLeftAnalogueStickToDpadInDigitalMode[0] && Host::GetBus().GetSIO().GetPort(0).GetController().GetType() == Controller::Type::Digital)
+		{
+			const float threshold = 0.5f;
+			hostController0.joypadUp |= controller->left_y > threshold;
+			hostController0.joypadDown |= controller->left_y < -threshold;
+			hostController0.joypadLeft |= controller->left_x < -threshold;
+			hostController0.joypadRight |= controller->left_x > threshold;
+		}
+
+		hostController0.buttonL1 = controller->buttons[BUTTON_L1];
+		hostController0.buttonL2 = controller->buttons[BUTTON_L2];
+		hostController0.buttonR1 = controller->buttons[BUTTON_R1];
+		hostController0.buttonR2 = controller->buttons[BUTTON_R2];
+		hostController0.buttonL3 = controller->buttons[BUTTON_L3];
+		hostController0.buttonR3 = controller->buttons[BUTTON_R3];
+
+		hostController0.buttonNorth = controller->buttons[BUTTON_TRIANGLE]; // PlayStation Triangle / Nintendo Y / Xbox Y
+		hostController0.buttonEast = controller->buttons[BUTTON_CIRCLE];  // PlayStation Circle / Nintendo A / Xbox B
+		hostController0.buttonSouth = controller->buttons[BUTTON_CROSS]; // PlayStation Cross / Nintendo B / Xbox A
+		hostController0.buttonWest = controller->buttons[BUTTON_SQUARE];  // PlayStation Square / Nintendo X / Xbox X
+
+		hostController0.m_leftStickX = controller->left_x;
+		hostController0.m_leftStickY = controller->left_y;
+		hostController0.m_rightStickX = controller->right_x;
+		hostController0.m_rightStickY = controller->right_y;
+	}
 
 	// Pass input state changes to emulator
 	SIO& sio = Host::GetBus().GetSIO();
@@ -461,7 +500,6 @@ static void handleInput()
 	if (hostController0.m_rightStickY != hostController0_prev.m_rightStickY)
 		controller0.SetRightJoyY(stickFloatToU8(hostController0.m_rightStickY));
 
-	/*
 	Controller& controller1 = sio.GetPort(1).GetController();
 	if (hostController1.buttonSelect != hostController1_prev.buttonSelect)
 		hostController1.buttonSelect ? controller1.DigitalSwitchDown(Controller::DigitalSwitch::SelectButton) : controller1.DigitalSwitchUp(Controller::DigitalSwitch::SelectButton);
@@ -503,7 +541,6 @@ static void handleInput()
 		controller1.SetRightJoyX(stickFloatToU8(hostController1.m_rightStickX));
 	if (hostController1.m_rightStickY != hostController1_prev.m_rightStickY)
 		controller1.SetRightJoyY(stickFloatToU8(hostController1.m_rightStickY));
-		*/
 }
 
 //
@@ -946,11 +983,10 @@ int main(int argc, char** argv)
 		s_quit = window->ShouldClose();
 
 		xgui::InputState input = pollEventsAndGetKeyboard();
-
 		xgui::beginFrame(input);
 
 		handleInput();
-		//Input::FrameStart();
+		controller_input_update();
 
 		updateGUI();
 

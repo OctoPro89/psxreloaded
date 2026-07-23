@@ -165,7 +165,7 @@
     <ClInclude Include="src\GUI\MenuBar.h" />
     <ClInclude Include="src\Host.h" />
     <ClInclude Include="src\HostAudioBuffer.h" />
-    <ClInclude Include="src\Input.h" />
+    <ClInclude Include="src\platform\ControllerInput.h" />
     <ClInclude Include="src\platform\AudioResampler.h" />
     <ClInclude Include="src\platform\gl_loader.h" />
     <ClInclude Include="src\platform\platform.h" />
@@ -215,7 +215,7 @@
     <ClCompile Include="src\PSXReloaded.cpp" />
     <ClCompile Include="src\Host.cpp" />
     <ClCompile Include="src\HostAudioBuffer.cpp" />
-    <ClCompile Include="src\Input.cpp" />
+    <ClCompile Include="src\platform\ControllerInput.c" />
     <ClCompile Include="src\platform\gl_loader.c" />
     <ClCompile Include="src\psx-utils\R3000Utils.cpp" />
     <ClCompile Include="src\psx-utils\Sideload.cpp" />
