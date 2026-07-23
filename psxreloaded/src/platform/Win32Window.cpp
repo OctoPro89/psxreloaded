@@ -176,7 +176,7 @@ bool Win32Window::SetupGLContext() {
         (wglSwapIntervalEXTProc)wglGetProcAddress("wglSwapIntervalEXT");
 
     if (wglSwapIntervalEXT) {
-        wglSwapIntervalEXT(0); // 0 = VSync off, 1 = VSync on
+        wglSwapIntervalEXT(1); // 0 = VSync off, 1 = VSync on
     }
 
     // 2. Load wgl extensions

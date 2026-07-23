@@ -20,6 +20,9 @@
 #include "core/StringHelpers.h"
 #include "core/MathsHelpers.h"
 
+#include <platform/platform.h>
+#include <platform/AudioResampler.h>
+
 #include <string.h> // memset
 
 // TODO:
@@ -38,7 +41,7 @@ static u32 s_vramImageData[kVRAMTextureWidthPixels * kVRAMHeightLines];
 static Texture* s_pVramTexture;
 
 static constexpr unsigned int kHostAudioSampleRate = 44100; // Match PSX SPU output sample rate
-static constexpr unsigned int kHostBufferSizeFrames = kHostAudioSampleRate; // 1 second of audio
+static constexpr unsigned int kHostBufferSizeFrames = 4096; // kHostAudioSampleRate; // 1 second of audio
 static HostAudioBuffer* s_pEmulatorAudioBuffer; // PCM buffer written to by emulator
 static bool s_audioEnabled;
 
@@ -54,6 +57,11 @@ static CD* s_pCD; // a single CD
 
 static TTYLogger s_ttyLogger;
 
+static AudioResampler s_resampler;
+static constexpr unsigned int kResamplerBufferFrames = 4096;
+
+static int16_t s_resampledBuffer[kResamplerBufferFrames * kAudioChannelCount];
+
 #define DEBUGGER_ENABLED 0 // Remove conditional from core loop unless required.
 #if DEBUGGER_ENABLED
 static bool s_logDisassembly = false;
@@ -66,15 +74,17 @@ static bool initHostAudio()
 	// This is currently ignored, see AudioDevice::Init()
 	unsigned int requestedBufferSizeInSampleFrames = 512;
 
-	//if (AudioDevice::Init(requestedBufferSizeInSampleFrames, kHostAudioSampleRate))
-	//{
-		//LOG_INFO("Audio device initialised.\n");
-	//}
-	//else
-	//{
-		//LOG_ERROR("Failed to initialise audio device\n");
-		//return false;
-	//}
+	if (AudioDevice::Init(requestedBufferSizeInSampleFrames, kHostAudioSampleRate))
+	{
+		LOG_INFO("Audio device initialised.\n");
+	}
+	else
+	{
+		LOG_ERROR("Failed to initialise audio device\n");
+		return false;
+	}
+
+	s_resampler.Init(44100, platform_audio_output_sample_rate);
 
 	// Create buffer for signed 16-bit stereo PCM samples from emulator
 	HP_ASSERT(s_pEmulatorAudioBuffer == nullptr);
@@ -96,8 +106,8 @@ static void audioFrameCallback(const int16_t spuSamples[2])
 
 		// Newly-opened audio devices start in the paused state. #TODO: Does this still apply in SDL3?
 		// #TODO: Only unpause when emulator is running
-		//if (AudioDevice::IsPaused())
-			//AudioDevice::Resume();
+		if (AudioDevice::IsPaused())
+			AudioDevice::Resume();
 
 		// Prevent audio buffer under-run or over-run by dynamically adjusting the sample rate slightly to speed up or slow down the audio output.
 		// TODO
@@ -204,10 +214,10 @@ void Host::Shutdown()
 	delete s_pVramTexture;
 	s_pVramTexture = nullptr;
 
-	//delete s_pEmulatorAudioBuffer;
+	delete s_pEmulatorAudioBuffer;
 	s_pEmulatorAudioBuffer = nullptr;
 
-	//AudioDevice::Shutdown();
+	AudioDevice::Shutdown();
 
 	//Renderer::Shutdown();
 }
@@ -301,37 +311,38 @@ static void updateVramTexture()
 	};
 
 	VRAMConvert::ConvertToR8G8B8A8_UNORM(vram, srcRect, DisplayFormat::A1B5G5R5, s_vramImageData, dstRect, kVRAMTextureWidthPixels, kVRAMHeightLines);
-
-	// #TODO: Is it a race condition to call Texture::CopyImageDataToTransferBuffer and copy data into the transfer buffer while GPU is running? Should this be called within the render phase?
-	//s_pVramTexture->CopyImageDataToTransferBuffer(s_vramImageData);
 }
 
+// TODO: fix popping
 static void generateTestTone(double deltaTimeSeconds)
 {
 	// #TEST: Play 440 Hz square wave
 	float frequency = 440.0f; // periods per second
-	//unsigned int samplesPerPeriod = (unsigned int)(AudioDevice::GetSampleRate() / frequency); // (samples / second) / (period / second) = samples / period
+	unsigned int samplesPerPeriod = (unsigned int)(AudioDevice::GetSampleRate() / frequency); // (samples / second) / (period / second) = samples / period
 	static unsigned int s_frameCount = 0; // total audio frames generated
 
-	//unsigned int numFrames = (unsigned int)(deltaTimeSeconds * AudioDevice::GetSampleRate()); // total number of frames (all channels) to generate this update
+	unsigned int numFrames = (unsigned int)(deltaTimeSeconds * AudioDevice::GetSampleRate()); // total number of frames (all channels) to generate this update
 
 	// Ensure we don't overflow the buffer
 	unsigned int maxFrames = s_pEmulatorAudioBuffer->GetCapacity() / kAudioChannelCount;
-	//if (numFrames > maxFrames)
-		//numFrames = maxFrames;
+	if (numFrames > maxFrames)
+		numFrames = maxFrames;
 
 	s_pEmulatorAudioBuffer->Reset();
-	//for (unsigned int i = 0; i < numFrames; i++)
-	//{
+	for (unsigned int i = 0; i < numFrames; i++)
+	{
 		// Stereo sound, so writing to both channels
-		//int16_t val = (s_frameCount % samplesPerPeriod) < (samplesPerPeriod / 2) ? INT16_MIN : INT16_MAX;
-		//s_pEmulatorAudioBuffer->WriteSample(val); // L
-		//s_pEmulatorAudioBuffer->WriteSample(val); // R
-		//s_frameCount++;
-	//}
+		int16_t val = (s_frameCount % samplesPerPeriod) < (samplesPerPeriod / 2) ? INT16_MIN : INT16_MAX;
+		s_pEmulatorAudioBuffer->WriteSample(val); // L
+		s_pEmulatorAudioBuffer->WriteSample(val); // R
+		s_frameCount++;
+	}
 
-	//unsigned int lengthBytes = numFrames * sizeof(int16_t) * kAudioChannelCount; // total bytes (all channels)
-	//AudioDevice::PutAudioStreamData(s_pEmulatorAudioBuffer->GetBuffer(), lengthBytes);
+	unsigned int lengthBytes = numFrames * sizeof(int16_t) * kAudioChannelCount; // total bytes (all channels)
+	// resample to device
+	unsigned int outputFrames = s_resampler.Process(s_pEmulatorAudioBuffer->GetBuffer(), lengthBytes / kAudioFrameSize, s_resampledBuffer, kResamplerBufferFrames);
+
+	AudioDevice::PutAudioStreamData(s_resampledBuffer, outputFrames * kAudioFrameSize);
 	s_pEmulatorAudioBuffer->Reset();
 }
 
@@ -357,7 +368,9 @@ static void updateAudio(double displayRefreshPeriodSeconds, double frameDeltaTim
 	}
 
 	lengthBytes = numSamples * sizeof(int16_t); // total bytes (all channels)
-	//AudioDevice::PutAudioStreamData(s_pEmulatorAudioBuffer->GetBuffer(), lengthBytes);
+	// resample to device
+	unsigned int outputFrames = s_resampler.Process(s_pEmulatorAudioBuffer->GetBuffer(), lengthBytes / kAudioFrameSize, s_resampledBuffer, kResamplerBufferFrames);
+	AudioDevice::PutAudioStreamData(s_resampledBuffer, outputFrames * kAudioFrameSize);
 	s_pEmulatorAudioBuffer->Reset();
 }
 

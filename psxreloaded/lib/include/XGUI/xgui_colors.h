@@ -3,42 +3,49 @@
 
 #include <XGUI/xgui_common.h>
 
-struct Color {
-    f32 r, g, b, a;
-};
+namespace xgui {
+    namespace Colors {
+        struct Color {
+            f32 r, g, b, a;
+        };
 
-namespace Colors {
-    // Global colors
-    static Color White{ 1.0f, 1.0f, 1.0f, 1.0f };
-    static Color Text{ 1.0f, 1.0f, 1.0f, 1.0f };
+        // Global colors
+        extern Color White;
+        extern Color Text;
 
-    // Button colors
-    static Color Button{ 0.2f, 0.2f, 0.2f, 1.0f };
-    static Color ButtonHover{ 0.3f, 0.3f, 0.3f, 1.0f };
-    static Color ButtonClicked{ 0.1f, 0.1f, 0.1f, 1.0f };
+        // Button colors
+        extern Color ButtonHover;
+        extern Color ButtonClicked;
+        extern Color Button;
 
-    // Slider colors
-    static Color Slider{ 0.2f, 0.2f, 0.2f, 1.0f };
-    static Color SliderHover{ 0.3f, 0.3f, 0.3f, 1.0f };
-    static Color SliderClicked{ 0.1f, 0.1f, 0.1f, 1.0f };
-    static Color SliderKnob{ 0.3f, 0.3f, 0.3f, 1.0f };
+        // Slider colors
+        extern Color Slider;
+        extern Color SliderHover;
+        extern Color SliderClicked;
+        extern Color SliderKnob;
 
-    // Checkbox colors
-    static Color Checkbox{ 0.2f, 0.2f, 0.2f, 1.0f };
-    static Color CheckboxHover{ 0.3f, 0.3f, 0.3f, 1.0f };
-    static Color CheckboxClicked{ 0.1f, 0.1f, 0.1f, 1.0f };
+        // Checkbox colors
+        extern Color Checkbox;
+        extern Color CheckboxHover;
+        extern Color CheckboxClicked;
 
-    // Textbox colors
-    static Color TextboxFocused{ 0.2f, 0.2f, 0.4f, 1.0f };
-    static Color TextboxUnfocused{ 0.2f, 0.2f, 0.2f, 1.0f };
-    static Color TextboxSelection{ 0.5f, 0.5f, 0.5f, 1.0f };
-    static Color TextboxHover{ 0.3f, 0.3f, 0.3f, 1.0f };
+        // Textbox colors
+        extern Color TextboxFocused;
+        extern Color TextboxUnfocused;
+        extern Color TextboxSelection;
+        extern Color TextboxHover;
 
-    // Menu bar colors
-    static Color MenuBar{ 0.2f, 0.2f, 0.2f, 1.0f };
-    static Color MenuBarItem{ 0.2f, 0.2f, 0.2f, 1.0f };
-    static Color MenuBarItemHover{ 0.3f, 0.3f, 0.3f, 1.0f };
-    static Color MenuBarItemClicked{ 0.1f, 0.1f, 0.1f, 1.0f };
+        // Menu bar colors
+        extern Color MenuBar;
+        extern Color MenuBarItem;
+        extern Color MenuBarItemHover;
+        extern Color MenuBarItemClicked;
+
+        // Menu colors
+        extern Color Menu;
+        extern Color MenuHover;
+        extern Color MenuClicked;
+    }
 }
 
 #endif // XGUI_COLORS_H

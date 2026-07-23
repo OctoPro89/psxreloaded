@@ -230,7 +230,10 @@ namespace xgui
     XAPI i32 menu(MenuItem* items, i32 count, f32 x, f32 y, i32 depth = 0);
 
     // Render image
-    XAPI void imageView(u32 gl_id, f32 x, f32 y, f32 w, f32 h);
+    XAPI void imageView(u32 gl_id, f32 x, f32 y, f32 w, f32 h, f32 u0 = 0.0f, f32 v0 = 0.0f, f32 u1 = 1.0f, f32 v1 = 1.0f);
+    
+    // Open a file picker
+    XAPI char* filePicker(const char* title, const char* filter);
 
     // Helper functions
     namespace internal
@@ -240,11 +243,13 @@ namespace xgui
         XAPI std::string getClipboardText();
         XAPI void setClipboardText(const std::string& text);
 
+        XAPI char* openFileDialog(const char* title, const char* filter);
+
         XAPI u32 hashString(const char* str);
         XAPI bool isPointInRect(f32 x, f32 y, const Rect& rect);
 
-        XAPI void renderRect(const Rect& rect, const Color& color, f32 corner_radius = 0.0f);
-        XAPI void renderText(const char* text, f32 x, f32 y, const Color& color);
+        XAPI void renderRect(const Rect& rect, const Colors::Color& color, f32 corner_radius = 0.0f);
+        XAPI void renderText(const char* text, f32 x, f32 y, const Colors::Color& color);
     }
 
     struct Window

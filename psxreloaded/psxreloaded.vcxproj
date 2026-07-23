@@ -161,9 +161,12 @@
     <ClInclude Include="src\core\RingBuffer.h" />
     <ClInclude Include="src\core\StringHelpers.h" />
     <ClInclude Include="src\core\Types.h" />
+    <ClInclude Include="src\GUI\GuiUtils.h" />
+    <ClInclude Include="src\GUI\MenuBar.h" />
     <ClInclude Include="src\Host.h" />
     <ClInclude Include="src\HostAudioBuffer.h" />
     <ClInclude Include="src\Input.h" />
+    <ClInclude Include="src\platform\AudioResampler.h" />
     <ClInclude Include="src\platform\gl_loader.h" />
     <ClInclude Include="src\platform\platform.h" />
     <ClInclude Include="src\platform\Win32Window.h" />
@@ -205,13 +208,15 @@
     <ClCompile Include="src\core\Parse.cpp" />
     <ClCompile Include="src\core\RingBuffer.cpp" />
     <ClCompile Include="src\core\StringHelpers.cpp" />
+    <ClCompile Include="src\GUI\MenuBar.cpp" />
+    <ClCompile Include="src\platform\AudioResampler.cpp" />
+    <ClCompile Include="src\platform\platform.c" />
     <ClCompile Include="src\platform\Win32Window.cpp" />
     <ClCompile Include="src\PSXReloaded.cpp" />
     <ClCompile Include="src\Host.cpp" />
     <ClCompile Include="src\HostAudioBuffer.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\platform\gl_loader.c" />
-    <ClCompile Include="src\platform\platform_win32.c" />
     <ClCompile Include="src\psx-utils\R3000Utils.cpp" />
     <ClCompile Include="src\psx-utils\Sideload.cpp" />
     <ClCompile Include="src\psx-utils\Snapshot.cpp" />
@@ -238,6 +243,7 @@
     <ClCompile Include="src\psx\Timers.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\xgui\XGUI\impl\xgui_impl_opengl.cpp" />
+    <ClCompile Include="src\xgui\XGUI\xgui_colors.cpp" />
     <ClCompile Include="src\xgui\XGUI\xgui_core.cpp" />
     <ClCompile Include="src\xgui\XGUI\xgui_font.cpp" />
     <ClCompile Include="src\xgui\XGUI\xgui_image.cpp" />

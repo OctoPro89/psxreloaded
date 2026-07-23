@@ -4,8 +4,6 @@
 
 #include <stdint.h>
 
-//typedef struct SDL_AudioStream SDL_AudioStream;
-
 static const unsigned int kAudioChannelCount = 2; // stereo
 static const unsigned int kAudioFrameSize = sizeof(int16_t) * kAudioChannelCount; // AUDIO_S16SYS stereo frame
 

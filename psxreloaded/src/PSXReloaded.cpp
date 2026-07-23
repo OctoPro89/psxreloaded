@@ -1,5 +1,4 @@
-// This will become the windowed application
-
+#include "GUI/MenuBar.h"
 #include "GUI/InsertDiscDialog.h"
 #include "GUI/MemoryCardFileDialog.h"
 #include "GUI/SideloadDialog.h"
@@ -352,7 +351,7 @@ static inline u8 stickFloatToU8(float val)
 
 static void handleInput()
 {
-	// TODO: actual input layer
+	// TODO: actual input layer, controller input fr
 	const xgui::InputState& input = xgui::Context::get().input;
 
 	const HostControllerInput hostController0_prev = s_hostInput.controllers[0];
@@ -361,7 +360,7 @@ static void handleInput()
 	hostController0.buttonSelect = input.key_shift;
 	//hostController0.buttonL3 = ;
 	//hostController0.buttonR3 = Input::GetKeyState(SDL_SCANCODE_RCTRL) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
-	hostController0.buttonStart = input.key_enter;
+	hostController0.buttonStart = m_keys[VK_RETURN];
 	hostController0.joypadUp = m_keys['W'];
 	hostController0.joypadRight = m_keys['D'];
 	hostController0.joypadDown = m_keys['S'];
@@ -750,6 +749,7 @@ static unsigned int showMainMenuBar(SDL_Window* pWindow)
 static void updateGUI()
 {
 	Bus& bus = Host::GetBus();
+	MenuBar::Update(s_mainMenuBarVisible);
 	/*
 	InsertDiscDialog::Update();
 	MemoryCardFileDialog::Update();
@@ -770,6 +770,12 @@ static void updateGUI()
 static void displayEmulatorView()
 {
 	auto& ctx = xgui::Context::get();
+	auto& gpu = Host::GetBus().GetGPU();
+
+	// TODO: account for aspect ratio
+	// don't draw whole texture, just visible region i.e. respect GPU display state
+	unsigned int w = gpu.GetHorizontalResolution();
+	unsigned int h = gpu.GetVerticalResolution();
 
 	float menuHeight = s_mainMenuBarVisible ? 20.0f : 0.0f;
 
@@ -792,13 +798,33 @@ static void displayEmulatorView()
 	float viewportX = availX + (availW - viewportW) * 0.5f;
 	float viewportY = availY + (availH - viewportH) * 0.5f;
 
+	float u1 = float(w) / 640.0f;
+	float v1 = float(h) / 480.0f;
+
 	xgui::imageView(
 		Host::GetDisplayTexture()->GetGLTexture(),
 		viewportX + viewportW * 0.5f,
 		viewportY + viewportH * 0.5f,
 		viewportW,
-		viewportH
+		viewportH,
+		0.0f, 0.0f,
+		u1, v1
 	);
+
+	
+	// real emu scaling
+	/*
+	unsigned int gpuW = gpu.GetHorizontalResolution();
+	unsigned int gpuH = gpu.GetVerticalResolution();
+
+	int scale = std::max(1, std::min(
+		(int)(availW / gpuW),
+		(int)(availH / gpuH)
+	));
+
+	viewportW = gpuW * scale;
+	viewportH = gpuH * scale;
+	*/
 }
 
 int main(int argc, char** argv)
@@ -841,7 +867,7 @@ int main(int argc, char** argv)
 	window->SetKeyCallback(keyboardCallback);
 	window->SetWindowResizeAndRenderDuringResizeCallback(resizeCallback);
 
-	if (!Host::Init(/* audioSubSystemInitialised */ false, commandLineArgs.biosPath))
+	if (!Host::Init(/* audioSubSystemInitialised */ true, commandLineArgs.biosPath))
 	{
 		LOG_ERROR("Failed to initialise host\n");
 		return EXIT_FAILURE;
@@ -898,6 +924,8 @@ int main(int argc, char** argv)
 	ctx.screen_width = (float)window->GetWidth();
 	ctx.screen_height = (float)window->GetHeight();
 
+	ctx.style.menu_bar_margin = 16.0f;
+
 	ctx.projection_updated_map.values[0] = false; // Rebuild projection matrix
 	ctx.projection_updated_map.values[1] = false;
 	ctx.projection_updated_map.values[2] = false;
@@ -907,8 +935,18 @@ int main(int argc, char** argv)
 	s_quit = false;
 	double prevTime = window->GetTime();
 
+	// Colors
+	xgui::Colors::MenuBar = { 0.0509803922f, 0.0666666667f, 0.0901960784f, 1.0f };
+	xgui::Colors::MenuBarItem = { 0.0509803922f, 0.0666666667f, 0.0901960784f, 1.0f };
+	xgui::Colors::MenuBarItemHover = { 0.0509803922f + 0.15f, 0.0666666667f + 0.15f, 0.0901960784f + 0.15f, 1.0f };
+	xgui::Colors::MenuBarItemClicked = { 0.0509803922f - 0.05f, 0.0666666667f - 0.05f, 0.0901960784f - 0.05f, 1.0f };
+	xgui::Colors::Menu = { 0.0509803922f, 0.0666666667f, 0.0901960784f, 1.0f };
+	xgui::Colors::MenuHover = { 0.0509803922f + 0.15f, 0.0666666667f + 0.15f, 0.0901960784f + 0.15f, 1.0f };
+
 	while (!s_quit)
 	{
+		s_quit = window->ShouldClose();
+
 		xgui::InputState input = pollEventsAndGetKeyboard();
 
 		xgui::beginFrame(input);
@@ -916,90 +954,9 @@ int main(int argc, char** argv)
 		handleInput();
 		//Input::FrameStart();
 
-		if (s_mainMenuBarVisible)
-		{
-			f32 file_menu_x_off = 0.0f;
-
-			static bool fileMenuOpen = false;
-
-			xgui::menuBar(20.0f);
-			if (xgui::menuBarItem("File", &file_menu_x_off)) {
-				fileMenuOpen = !fileMenuOpen;
-			}
-
-			if (fileMenuOpen)
-			{
-				//// File
-	//if (ImGui::BeginMenu("File"))
-	//{
-	//	if (ImGui::MenuItem("Insert disc..."))
-	//	{
-	//		// This call returns immediately
-	//		InsertDiscDialog::ShowOpenFileDialog(pWindow);
-	//	}
-	//	if (ImGui::MenuItem("Eject disc", /*shortcut*/nullptr, /*selected*/false, /*enabled*/bus.GetCDROM().IsDiscInserted()))
-	//	{
-	//		bus.GetCDROM().EjectDisc();
-	//	}
-	//	if (ImGui::MenuItem("Sideload executable..."))
-	//	{
-	//		// This call returns immediately
-	//		SideloadDialog::ShowOpenFileDialog(pWindow);
-	//	}
-	//	ImGui::Separator();
-	//	if (ImGui::MenuItem("Save display..."))
-	//	{
-	//		const GPU& gpu = bus.GetGPU();
-	//		SnapshotDialog::ShowSaveFileDialog(pWindow, gpu.GetDisplayStartX(), gpu.GetDisplayStartY(), gpu.GetHorizontalResolution(), gpu.GetVerticalResolution(), gpu.GetDisplayFormat());
-	//	}
-	//	if (ImGui::MenuItem("Save VRAM (16 bpp)..."))
-	//	{
-	//		SnapshotDialog::ShowSaveFileDialog(pWindow, 0, 0, kVRAMWidth16bpp, kVRAMHeightLines, DisplayFormat::A1B5G5R5);
-	//	}
-	//	if (ImGui::MenuItem("Save VRAM (24 bpp)..."))
-	//	{
-	//		static constexpr unsigned int kVRAMWidth24bpp = kVRAMWidthBytes / 3; // 682.66 rounded down to 682
-	//		SnapshotDialog::ShowSaveFileDialog(pWindow, 0, 0, kVRAMWidth24bpp, kVRAMHeightLines, DisplayFormat::B8G8R8);
-	//	}
-	//	ImGui::Separator();
-	//	if (ImGui::MenuItem("Exit"))
-	//		s_quit = true;
-	//	ImGui::EndMenu();
-	//}
-				static xgui::MenuItem saveSubmenu[] = {
-					{ "Save display..." },
-					{ "Save VRAM 16 bpp" },
-					{ "Save VRAM 24 bpp" },
-				};
-
-				static xgui::MenuItem fileMenu[] = {
-					{ "Insert disc..." },
-					{ "Eject disc" },
-					{ "Sideload executable..." },
-					{ "Screen capture", saveSubmenu, _countof(saveSubmenu) },
-					{ "Exit" }
-				};
-
-				int selected = xgui::menu(fileMenu, _countof(fileMenu), file_menu_x_off, ctx.current_menu_bar.height);
-				if (selected != -1) {
-					int parent = XGUI_MENUBAR_PARENT(selected);
-					int child = XGUI_MENUBAR_CHILD(selected);
-
-					// TODO:
-
-					fileMenuOpen = false;
-				}
-			}
-
-			if (ctx.active_id == 0 && ctx.hot_id == 0 && ctx.input.mouse_down[0])
-			{
-				fileMenuOpen = false;
-			}
-		}
+		updateGUI();
 
 		displayEmulatorView();
-
-		s_quit = window->ShouldClose();
 
 		bool ctrl = input.key_ctrl;
 		bool shift = input.key_shift;
@@ -1024,12 +981,12 @@ int main(int argc, char** argv)
 		double currentTime = window->GetTime();
 		double frameTimeSeconds = currentTime - prevTime;
 		prevTime = currentTime;
-		// TODO:
+		// TODO: frame skip
 		if (frameTimeSeconds > 0.5)
 			frameTimeSeconds = 1.0 / 170.0; // Probably debugging.
 
-		Host::Update(/* displayFramePeriodSeconds */ 1.0 / 60.0, frameTimeSeconds);
-		//updateGUI();
+		// TODO: Get refresh rate
+		Host::Update(/* displayFramePeriodSeconds */ 1.0 / 170.0, frameTimeSeconds);
 		//Host::Render(menuBarHeight);
 
 		xgui::endFrame();

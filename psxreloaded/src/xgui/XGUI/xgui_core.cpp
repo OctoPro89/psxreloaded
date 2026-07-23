@@ -70,7 +70,7 @@ namespace xgui
         }
     }
 
-    static void renderCheckmark(f32 x, f32 y, f32 size, const Color& color)
+    static void renderCheckmark(f32 x, f32 y, f32 size, const Colors::Color& color)
     {
         xgui_render_command cmd{};
         cmd.x = x;
@@ -82,7 +82,7 @@ namespace xgui
         pushCommand(cmd);
     }
 
-    static void renderImageView(u32 gl_id, f32 x, f32 y, f32 w, f32 h)
+    static void renderImageView(u32 gl_id, f32 x, f32 y, f32 w, f32 h, f32 u0, f32 v0, f32 u1, f32 v1)
     {
         xgui_render_command cmd{};
         cmd.x = x;
@@ -90,12 +90,16 @@ namespace xgui
         cmd.submission_id = global_submission_counter++;
         cmd.w = w;
         cmd.h = h;
+        cmd.u0 = u0;
+        cmd.v0 = v0;
+        cmd.u1 = u1;
+        cmd.v1 = v1;
         cmd.gl_id = gl_id;
         cmd.render_type = XGUI_RENDER_TYPE_IMAGEVIEW;
         pushCommand(cmd);
     }
 
-    static void renderArrowRight(f32 x, f32 y, f32 size, const Color& color)
+    static void renderArrowRight(f32 x, f32 y, f32 size, const Colors::Color& color)
     {
         xgui_render_command cmd{};
         cmd.x = x;
@@ -120,6 +124,7 @@ namespace xgui
             if (!impl::opengl::init_context_vars()) { return false; }
 #endif // XGUI_IMPL_OPENGL
 
+            // could use c:\\Windows\\Fonts\\segoeui.ttf on windows as a default
             return font::loadFontSDF("C:/Users/vince/Downloads/Cascadia_Code/static/CascadiaCode-Medium.ttf", s_context->text_size, &s_context->font_texture, &s_context->glyphs[0]);
         }
 
@@ -307,7 +312,7 @@ namespace xgui
         if (!ctx.input.mouse_down[0] && ctx.active_id == id)
             ctx.active_id = 0;
 
-        internal::renderRect(thumb, hovered ? Color{ 0.6f,0.6f,0.6f,1 } : Color{ 0.4f,0.4f,0.4f,1 }, 4.0f);
+        internal::renderRect(thumb, hovered ? Colors::Color{ 0.6f,0.6f,0.6f,1 } : Colors::Color{ 0.4f,0.4f,0.4f,1 }, 4.0f);
     }
 
     void beginWindow(const char* title, f32 x, f32 y, f32 w, f32 h, bool draggable)
@@ -372,7 +377,7 @@ namespace xgui
             ctx.active_id = 0;
         }
 
-        Color bar_color = win->focused ? Color{ 0.3f, 0.3f, 0.6f, 1.0f } : Color{ 0.2f, 0.2f, 0.2f, 1.0f };
+        Colors::Color bar_color = win->focused ? Colors::Color{ 0.3f, 0.3f, 0.6f, 1.0f } : Colors::Color{ 0.2f, 0.2f, 0.2f, 1.0f };
 
         // Drag move / docking
         if (win->dragging)
@@ -436,7 +441,7 @@ namespace xgui
 
         // Window background
         Rect bg = { win->rect.x, win->rect.y + title_bar_height, win->rect.w, win->rect.h - title_bar_height };
-        internal::renderRect(bg, Color{ 0.1f, 0.1f, 0.1f, 1.0f }, 0.0f);
+        internal::renderRect(bg, Colors::Color{ 0.1f, 0.1f, 0.1f, 1.0f }, 0.0f);
 
         ctx.current_clip = bg;
         ctx.clip = true;
@@ -497,7 +502,7 @@ namespace xgui
         }
 
         // Render
-        Color color = Colors::Button;
+        Colors::Color color = Colors::Button;
         if (ctx.active_id == id)
             color = Colors::ButtonClicked;
         else if (ctx.hot_id == id && is_hovered)
@@ -550,7 +555,7 @@ namespace xgui
         }
 
         // Style
-        Color box_color = Colors::Checkbox;
+        Colors::Color box_color = Colors::Checkbox;
         if (ctx.active_id == id)
             box_color = Colors::CheckboxClicked;
         else if (ctx.hot_id == id && is_hovered)
@@ -611,7 +616,7 @@ namespace xgui
             }
 
             // Style
-            Color box_color = Colors::Checkbox;
+            Colors::Color box_color = Colors::Checkbox;
             if (ctx.active_id == id)
                 box_color = Colors::CheckboxClicked;
             else if (ctx.hot_id == id && is_hovered)
@@ -1052,6 +1057,7 @@ namespace xgui
         commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
     }
 
+    // TODO: current menu bar struct
     bool menuBarItem(const char* text, f32* x_offset)
     {
         commandRecorder = XGUI_COMMAND_RECORDER_MENU;
@@ -1060,7 +1066,6 @@ namespace xgui
         const f32 x_size = internal::getTextWidth(text) + ctx.style.menu_bar_margin;
         const u32 id = internal::hashString(text);
         Rect rect = { ctx.current_menu_bar.total_size_x + ctx.style.menu_bar_margin, 0.0f, x_size, ctx.current_menu_bar.height };
-        if (*x_offset != 0.0f) { rect.x += *x_offset; }
         const bool is_hovered = internal::isPointInRect(ctx.input.mouse_pos.x, ctx.input.mouse_pos.y, rect);
 
         // Handle interaction
@@ -1082,7 +1087,7 @@ namespace xgui
         }
 
         // Render
-        Color color = Colors::MenuBarItem;
+        Colors::Color color = Colors::MenuBarItem;
         if (ctx.active_id == id)
             color = Colors::MenuBarItemClicked;
         else if (ctx.hot_id == id && is_hovered)
@@ -1176,11 +1181,11 @@ namespace xgui
             if (hover && ctx.active_id == 0)
             {
                 ctx.hot_id = id;
-                internal::renderRect(itemRect, Color{ 0.3f, 0.3f, 0.3f, 1.0f }, 0.0f);
+                internal::renderRect(itemRect, Colors::MenuHover, 0.0f);
             }
             else
             {
-                internal::renderRect(itemRect, Color{ 0.2f, 0.2f, 0.2f, 1.0f }, 0.0f);
+                internal::renderRect(itemRect, Colors::Menu, 0.0f);
             }
 
             internal::renderText(item.label, x + 6.0f, itemRect.y + itemHeight - 6.0f, Colors::White);
@@ -1198,6 +1203,7 @@ namespace xgui
                 {
                     item.is_open = false;
                     commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
+                    ctx.active_id = 0;
                     return (i32)((i << 8) | (sub != 0 ? sub /= 256 : sub));
                 }
             }
@@ -1213,7 +1219,7 @@ namespace xgui
                     if (ctx.input.mouse_down[0])
                     {
                         ctx.is_using_cursor = true;
-                        ctx.active_id = id;
+                        ctx.active_id = 0;
                         commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
                         return (i32)((i << 8) | 0);
                     }
@@ -1229,22 +1235,29 @@ namespace xgui
         return clickedIndex;
     }
 
-    void imageView(u32 gl_id, f32 x, f32 y, f32 w, f32 h)
+    void imageView(u32 gl_id, f32 x, f32 y, f32 w, f32 h, f32 u0, f32 v0, f32 u1, f32 v1)
     {
         // Adjust to top left coordinate sytem
         x -= (w / 2.0f);
         y -= (h / 2.0f);
         x = floor(x);
         y = floor(y);
-        renderImageView(gl_id, x, y, w, h);
+        renderImageView(gl_id, x, y, w, h, u0, v0, u1, v1);
+    }
+
+    char* filePicker(const char* title, const char* filter)
+    {
+        return internal::openFileDialog(title, filter);
     }
 
     namespace internal
     {
-        f32 getTextWidth(const char* text) {
+        f32 getTextWidth(const char* text)
+        {
             Context& ctx = Context::get();
             f32 width = 0.0f;
-            for (const char* p = text; *p; p++) {
+            for (const char* p = text; *p; p++)
+            {
                 u8 c = static_cast<u8>(*p);
                 if (c < 32 || c >= 128) continue;
                 width += ctx.glyphs[c].xadvance;
@@ -1256,12 +1269,15 @@ namespace xgui
 #undef APIENTRY
         #define WIN32_LEAN_AND_MEAN
         #include <windows.h>
+        #include <commdlg.h> // file picker
         
-        std::string xgui::internal::getClipboardText() {
+        std::string xgui::internal::getClipboardText()
+        {
             if (!OpenClipboard(nullptr)) return "";
 
             HANDLE hData = GetClipboardData(CF_TEXT);
-            if (hData == nullptr) {
+            if (hData == nullptr)
+            {
                 CloseClipboard();
                 return "";
             }
@@ -1279,14 +1295,17 @@ namespace xgui
             return text;
         }
 
-        void setClipboardText(const std::string& text) {
+        void setClipboardText(const std::string& text)
+        {
             if (!OpenClipboard(nullptr)) return;
 
             EmptyClipboard();
             HGLOBAL hGlob = GlobalAlloc(GMEM_MOVEABLE, text.size() + 1);
-            if (hGlob != nullptr) {
+            if (hGlob != nullptr)
+            {
                 char* pBuf = static_cast<char*>(GlobalLock(hGlob));
-                if (pBuf != nullptr) {
+                if (pBuf != nullptr)
+                {
                     strcpy(pBuf, text.c_str());
                     GlobalUnlock(hGlob);
                     SetClipboardData(CF_TEXT, hGlob);
@@ -1294,7 +1313,28 @@ namespace xgui
             }
             CloseClipboard();
         }
-#endif
+
+        static char file_dialog_filename[MAX_PATH] = {};
+
+        char* openFileDialog(const char* title, const char* filter)
+        {
+            OPENFILENAMEA ofn{};
+            ofn.lStructSize = sizeof(ofn);
+            ofn.hwndOwner = NULL;
+            ofn.lpstrFile = file_dialog_filename;
+            ofn.nMaxFile = MAX_PATH;
+
+            ofn.lpstrFilter = filter;
+
+            ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+            ofn.lpstrTitle = title;
+
+            if (GetOpenFileNameA(&ofn))
+                return file_dialog_filename;
+
+            return NULL;
+        }
+#endif 
 
         u32 hashString(const char* str)
         {
@@ -1313,7 +1353,7 @@ namespace xgui
             return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
         }
 
-        void renderRect(const Rect& rect, const Color& color, f32 corner_radius)
+        void renderRect(const Rect& rect, const Colors::Color& color, f32 corner_radius)
         {
             xgui_render_command cmd{};
             cmd.rect = rect;
@@ -1329,7 +1369,7 @@ namespace xgui
             pushCommand(cmd);
         }
 
-        void renderText(const char* text, f32 x, f32 y, const Color& color)
+        void renderText(const char* text, f32 x, f32 y, const Colors::Color& color)
         {
             xgui_render_command cmd{};
             cmd.x = x;

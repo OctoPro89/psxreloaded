@@ -16,6 +16,10 @@ namespace xgui
 
 	struct xgui_render_command
 	{
+		f32 u0 = 0.0f;
+		f32 v0 = 0.0f;
+		f32 u1 = 1.0f;
+		f32 v1 = 1.0f;
 		f32 x;
 		f32 y;
 		u64 submission_id;
@@ -23,7 +27,7 @@ namespace xgui
 		f32 h;
 		f32 size;
 		f32 corner_radius;
-		Color color;
+		Colors::Color color;
 		Rect rect;
 		std::string text;
 		u32 gl_id;

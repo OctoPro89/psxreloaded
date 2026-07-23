@@ -94,7 +94,7 @@ namespace xgui
 			{
                 Context& ctx = Context::get();
 
-                glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+                glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
                 const char* vertexShaderSource = Filesystem::readFile("sdf_box.vert.glsl", NULL);
                 const char* fragmentShaderSource = Filesystem::readFile("sdf_box.frag.glsl", NULL);
@@ -432,10 +432,10 @@ namespace xgui
                 glUniform1i(glGetUniformLocation(ctx.image_shader_program, "tex"), 0);
 
                 f32 vertices[] = {
-                    cmd.x,     cmd.y,      0.0f, 0.0f,  // Top-left
-                    cmd.x + cmd.w,   cmd.y,      1.0f, 0.0f,  // Top-right
-                    cmd.x + cmd.w,   cmd.y + cmd.h,    1.0f, 1.0f,  // Bottom-right
-                    cmd.x,     cmd.y + cmd.h,    0.0f, 1.0f   // Bottom-left
+                    cmd.x,         cmd.y,         cmd.u0, cmd.v0, // Top-left
+                    cmd.x + cmd.w, cmd.y,         cmd.u1, cmd.v0, // Top-right
+                    cmd.x + cmd.w, cmd.y + cmd.h, cmd.u1, cmd.v1, // Bottom-right
+                    cmd.x,         cmd.y + cmd.h, cmd.u0, cmd.v1  // Bottom-left
                 };
 
                 u32 indices[] = {

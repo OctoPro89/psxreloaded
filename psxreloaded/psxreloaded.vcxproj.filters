@@ -141,9 +141,6 @@
     <ClInclude Include="src\platform\gl_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\platform\platform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\xgui\Filesystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -181,6 +178,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\platform\Win32Window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform\platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform\AudioResampler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\MenuBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\GuiUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -299,9 +308,6 @@
     <ClCompile Include="src\platform\gl_loader.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\platform\platform_win32.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\xgui\XGUI\impl\xgui_impl_opengl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -315,6 +321,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\platform\Win32Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\xgui\XGUI\xgui_colors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\platform.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\AudioResampler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI\MenuBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

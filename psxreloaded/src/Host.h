@@ -39,7 +39,7 @@ public:
 	static inline bool s_drawDisplay = true;
 	static inline bool s_drawOverscan = true; // Offset display by vertical display range Y1
 	static inline unsigned int s_displayScale = 1;
-	static inline bool s_drawVRAM = true;
+	static inline bool s_drawVRAM = false;
 	static inline bool s_playTestTone = false;
 
 	// TODO: remove
