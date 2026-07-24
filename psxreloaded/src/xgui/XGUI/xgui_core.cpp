@@ -40,23 +40,15 @@ namespace xgui
             return out;
         }
 
-        // defines how these commands will be sorted
-        enum {
-            XGUI_COMMAND_RECORDER_DEFAULT = 0,
-            XGUI_COMMAND_RECORDER_WINDOW = 1,
-            XGUI_COMMAND_RECORDER_MENU = 2,
-        };
-
-        static int commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
-
         std::vector<xgui_render_command> render_commands;
         std::vector<xgui_render_command> menu_render_commands;
+        std::vector<xgui_render_command> top_render_commands;
     } // anonymous namespace
 
     static inline void pushCommand(const xgui_render_command& cmd)
     {
         Context& ctx = Context::get();
-        switch (commandRecorder)
+        switch (ctx.commandRecorder)
         {
         case XGUI_COMMAND_RECORDER_DEFAULT:
             render_commands.push_back(cmd);
@@ -66,6 +58,9 @@ namespace xgui
             break;
         case XGUI_COMMAND_RECORDER_MENU:
             menu_render_commands.push_back(cmd);
+            break;
+        case XGUI_COMMAND_RECORDER_TOP:
+            top_render_commands.push_back(cmd);
             break;
         }
     }
@@ -125,7 +120,7 @@ namespace xgui
 #endif // XGUI_IMPL_OPENGL
 
             // could use c:\\Windows\\Fonts\\segoeui.ttf on windows as a default
-            return font::loadFontSDF("C:/Users/nancy/Downloads/Cascadia_Code/static/CascadiaCode-Medium.ttf", s_context->text_size, &s_context->font_texture, &s_context->glyphs[0]);
+            return font::loadFontSDF("C:/Users/vince/Downloads/Cascadia_Code/static/CascadiaCode-Medium.ttf", s_context->text_size, &s_context->font_texture, &s_context->glyphs[0]);
         }
 
         return false;
@@ -245,6 +240,10 @@ namespace xgui
 #ifdef XGUI_IMPL_OPENGL
         impl::opengl::execCommands(menu_render_commands);
 #endif // XGUI_IMPL_OPENGL
+
+#ifdef XGUI_IMPL_OPENGL
+        impl::opengl::execCommands(top_render_commands);
+#endif // XGUI_IMPL_OPENGL
     }
 
     static void drawScrollbar(Window* win)
@@ -317,8 +316,6 @@ namespace xgui
 
     void beginWindow(const char* title, f32 x, f32 y, f32 w, f32 h, bool draggable)
     {
-        commandRecorder = XGUI_COMMAND_RECORDER_WINDOW;
-
         x -= (w / 2.0f);
         y -= (h / 2.0f);
 
@@ -326,6 +323,7 @@ namespace xgui
         u32 id = internal::hashString(parsed.id_part);
 
         Context& ctx = Context::get();
+        ctx.commandRecorder = XGUI_COMMAND_RECORDER_WINDOW;
 
         // Find or create
         Window* win = nullptr;
@@ -458,7 +456,7 @@ namespace xgui
 
         ctx.current_window = nullptr;
         ctx.clip = false;
-        commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
+        ctx.commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
     }
 
     void beginPopup(const char* title, f32 w, f32 h, bool draggable)
@@ -1049,19 +1047,19 @@ namespace xgui
 
     void menuBar(f32 height_px)
     {
-        commandRecorder = XGUI_COMMAND_RECORDER_MENU;
         Context& ctx = Context::get();
+        ctx.commandRecorder = XGUI_COMMAND_RECORDER_MENU;
         internal::renderRect({ 0.0f, 0.0f, ctx.screen_width, height_px }, Colors::MenuBar, 0.0f);
         ctx.current_menu_bar.height = height_px;
         ctx.current_menu_bar.total_size_x = 0.0f;
-        commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
+        ctx.commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
     }
 
     // TODO: current menu bar struct
     bool menuBarItem(const char* text, f32* x_offset)
     {
-        commandRecorder = XGUI_COMMAND_RECORDER_MENU;
         Context& ctx = Context::get();
+        ctx.commandRecorder = XGUI_COMMAND_RECORDER_MENU;
 
         const f32 x_size = internal::getTextWidth(text) + ctx.style.menu_bar_margin;
         const u32 id = internal::hashString(text);
@@ -1109,7 +1107,7 @@ namespace xgui
             *x_offset = rect.x;
         }
 
-        commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
+        ctx.commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
         return clicked;
     }
 
@@ -1145,8 +1143,8 @@ namespace xgui
 
     i32 menu(MenuItem* items, i32 count, f32 x, f32 y, i32 depth)
     {
-        commandRecorder = XGUI_COMMAND_RECORDER_MENU;
         Context& ctx = Context::get();
+        ctx.commandRecorder = XGUI_COMMAND_RECORDER_MENU;
 
         const f32 itemHeight = 22.0f;
         f32 menuWidth = 0.0f;
@@ -1198,40 +1196,41 @@ namespace xgui
             if (item.children && item.is_open)
             {
                 i32 sub = menu(item.children, item.child_count, x + menuWidth + 12.0f, itemRect.y, depth + 1);
-                commandRecorder = XGUI_COMMAND_RECORDER_MENU;
+                ctx.commandRecorder = XGUI_COMMAND_RECORDER_MENU;
                 if (sub != -1)
                 {
                     item.is_open = false;
-                    commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
+                    ctx.commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
                     ctx.active_id = 0;
                     return (i32)((i << 8) | (sub != 0 ? sub /= 256 : sub));
                 }
             }
             else if (hover)
             {
-                if (!item.children)
+                for (i32 j = 0; j < count; ++j)
                 {
-                    for (i32 j = 0; j < count; ++j)
-                    {
-                        items[j].is_open = false;
-                    }
+                    items[j].is_open = false;   
+                }
 
+                if (item.children)
+                {
+                    item.is_open = true;
+                    for (i32 i = 0; i < item.child_count; ++i) { item.children[i].is_open = false; }
+                }
+                else
+                {
                     if (ctx.input.mouse_down[0])
                     {
                         ctx.is_using_cursor = true;
                         ctx.active_id = 0;
-                        commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
+                        ctx.commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
                         return (i32)((i << 8) | 0);
                     }
-                }
-                else if (item.children)
-                {
-                    item.is_open = true;
                 }
             }
         }
 
-        commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
+        ctx.commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
         return clickedIndex;
     }
 
@@ -1410,6 +1409,7 @@ namespace xgui
             auto& ctx = Context::get();
             cmd.clip_rect = ctx.current_clip;
             cmd.use_clip = ctx.clip;
+            cmd.size = ctx.text_size;
 
             pushCommand(cmd);
         }

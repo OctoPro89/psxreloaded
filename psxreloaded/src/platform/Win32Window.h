@@ -46,6 +46,8 @@ public:
     int GetWidth() const { return m_width; }
     int GetHeight() const { return m_height; }
 
+    int GetMonitorRefreshRate() const;
+
     void SetKeyCallback(KeyCallbackFunc cb) { m_keyCallback = cb; }
     void SetMouseMoveCallback(MouseMoveCallbackFunc cb) { m_mouseMoveCallback = cb; }
     void SetMouseButtonCallback(MouseButtonCallbackFunc cb) { m_mouseButtonCallback = cb; }

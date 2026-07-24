@@ -64,5 +64,5 @@ void controller_input_set_rumble(int controller, float left, float right);
 #ifdef __cplusplus
 }
 #endif // __cplusplus
-#define INPUT_PRESSED(pPad, button) (pad->buttons[b] && !pad->previous[b])
-#define INPUT_RELEASED(pPad, button) (!pad->buttons[b] && pad->previous[b])
+#define INPUT_PRESSED(pPad, button) (pPad->buttons[button] && !pPad->previous[button])
+#define INPUT_RELEASED(pPad, button) (!pPad->buttons[button] && pPad->previous[button])

@@ -126,6 +126,27 @@ double Win32Window::GetTimeMS() const {
     return ((double)(now.QuadPart) * 1000.0) / (double)(qpc_frequency.QuadPart);
 }
 
+int Win32Window::GetMonitorRefreshRate() const
+{
+    HMONITOR hMonitor = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
+    if (!hMonitor)
+        return 0;
+
+    MONITORINFOEX monitorInfo = { 0 };
+    monitorInfo.cbSize = sizeof(monitorInfo);
+
+    if (!GetMonitorInfo(hMonitor, (MONITORINFO*)&monitorInfo))
+        return 0;
+
+    DEVMODE dm = { 0 };
+    dm.dmSize = sizeof(dm);
+
+    if (!EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &dm))
+        return 0;
+
+    return dm.dmDisplayFrequency;
+}
+
 #ifdef _DEBUG
 
 #include <cstdio>

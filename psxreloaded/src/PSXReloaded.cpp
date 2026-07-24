@@ -99,7 +99,8 @@ bool backspace = false;
 bool del = false;
 
 extern const bool* m_keys = NULL;
-extern double frameTimeSeconds = 0.0;
+double frameTimeSeconds = 0.0;
+int uiControllerMode;
 
 Win32Window* window{};
 
@@ -153,15 +154,37 @@ xgui::InputState pollEventsAndGetKeyboard()
 
 	// Process input
 	xgui::InputState input{};
-	input.mouse_down[0] = window->IsMouseButtonDown(0);
-	input.mouse_down[1] = window->IsMouseButtonDown(1);
-	input.mouse_down[2] = window->IsMouseButtonDown(2);
+	if (!uiControllerMode)
+	{
+		input.mouse_down[0] = window->IsMouseButtonDown(0);
+		input.mouse_down[1] = window->IsMouseButtonDown(1);
+		input.mouse_down[2] = window->IsMouseButtonDown(2);
 
-	int x = 0, y = 0;
-	window->GetMousePosition(x, y);
-	input.mouse_pos.x = (float)x;
-	input.mouse_pos.y = (float)y;
-	input.mouse_wheel = window->GetMouseWheelDelta();
+		int x = 0, y = 0;
+		window->GetMousePosition(x, y);
+		input.mouse_pos.x = (float)x;
+		input.mouse_pos.y = (float)y;
+		input.mouse_wheel = window->GetMouseWheelDelta();
+	}
+	else if (uiControllerMode == 2) // virtual mouse
+	{
+		const InputState* controller0 = controller_input_get_controller(0);
+		input.mouse_down[0] = controller0->buttons[BUTTON_L1];
+
+		static int x = 0;
+		static int y = 0;
+		x += controller0->left_x * 5.0f;
+		y -= controller0->left_y * 5.0f;
+		input.mouse_pos.x = x;
+		input.mouse_pos.y = y;
+		if (input.mouse_pos.x > window->GetWidth()) { x = window->GetWidth(); }
+		if (input.mouse_pos.y > window->GetWidth()) { y = window->GetWidth(); }
+		if (input.mouse_pos.x < 0) { x = 0; }
+		if (input.mouse_pos.y < 0) { y = 0; }
+		ctx.commandRecorder = xgui::XGUI_COMMAND_RECORDER_TOP;
+		xgui::internal::renderRect({ input.mouse_pos.x - 5.0f, input.mouse_pos.y - 5.0f, 10.0f, 10.0f }, { 1.0f, 0.1f, 0.1f, 1.0f }, 5.0f);
+		ctx.commandRecorder = xgui::XGUI_COMMAND_RECORDER_DEFAULT;
+	}
 
 	input.input_char = control ? 0 : state_char;
 	input.key_ctrl = control;
@@ -419,7 +442,7 @@ static void handleInput()
 	// Do controller input after if connected
 	// TODO: Controller UI, rumble
 	const InputState* controller = controller_input_get_controller(0);
-	if (controller->connected)
+	if (controller->connected && !uiControllerMode)
 	{
 		hostController0.buttonSelect = controller->buttons[BUTTON_SELECT];
 		hostController0.buttonStart = controller->buttons[BUTTON_START];
@@ -542,244 +565,6 @@ static void handleInput()
 		controller1.SetRightJoyX(stickFloatToU8(hostController1.m_rightStickX));
 	if (hostController1.m_rightStickY != hostController1_prev.m_rightStickY)
 		controller1.SetRightJoyY(stickFloatToU8(hostController1.m_rightStickY));
-}
-
-//
-// Returns menu bar height, which can be used to position items underneath the menu so they are not partially obscured.
-//
-static unsigned int showMainMenuBar(SDL_Window* pWindow)
-{
-
-	//if (!ImGui::BeginMainMenuBar())
-	//	return 0;
-
-	//Bus& bus = Host::GetBus();
-
-	//// File
-	//if (ImGui::BeginMenu("File"))
-	//{
-	//	if (ImGui::MenuItem("Insert disc..."))
-	//	{
-	//		// This call returns immediately
-	//		InsertDiscDialog::ShowOpenFileDialog(pWindow);
-	//	}
-	//	if (ImGui::MenuItem("Eject disc", /*shortcut*/nullptr, /*selected*/false, /*enabled*/bus.GetCDROM().IsDiscInserted()))
-	//	{
-	//		bus.GetCDROM().EjectDisc();
-	//	}
-	//	if (ImGui::MenuItem("Sideload executable..."))
-	//	{
-	//		// This call returns immediately
-	//		SideloadDialog::ShowOpenFileDialog(pWindow);
-	//	}
-	//	ImGui::Separator();
-	//	if (ImGui::MenuItem("Save display..."))
-	//	{
-	//		const GPU& gpu = bus.GetGPU();
-	//		SnapshotDialog::ShowSaveFileDialog(pWindow, gpu.GetDisplayStartX(), gpu.GetDisplayStartY(), gpu.GetHorizontalResolution(), gpu.GetVerticalResolution(), gpu.GetDisplayFormat());
-	//	}
-	//	if (ImGui::MenuItem("Save VRAM (16 bpp)..."))
-	//	{
-	//		SnapshotDialog::ShowSaveFileDialog(pWindow, 0, 0, kVRAMWidth16bpp, kVRAMHeightLines, DisplayFormat::A1B5G5R5);
-	//	}
-	//	if (ImGui::MenuItem("Save VRAM (24 bpp)..."))
-	//	{
-	//		static constexpr unsigned int kVRAMWidth24bpp = kVRAMWidthBytes / 3; // 682.66 rounded down to 682
-	//		SnapshotDialog::ShowSaveFileDialog(pWindow, 0, 0, kVRAMWidth24bpp, kVRAMHeightLines, DisplayFormat::B8G8R8);
-	//	}
-	//	ImGui::Separator();
-	//	if (ImGui::MenuItem("Exit"))
-	//		s_quit = true;
-	//	ImGui::EndMenu();
-	//}
-
-	//// Emulator
-	//if (ImGui::BeginMenu("Emulator"))
-	//{
-	//	if (ImGui::MenuItem("Reset", "Ctrl+Shift+F5")) // #TODO: Appropriate shortcut
-	//		Host::ResetEmulator();
-
-	//	ImGui::MenuItem("Pause", "F5", &Host::s_paused);
-
-	//	ImGui::Separator();
-
-	//	ImGui::MenuItem("Draw display", nullptr, &Host::s_drawDisplay);
-	//	if (ImGui::BeginMenu("Display scale"))
-	//	{
-	//		if (ImGui::MenuItem("x1", /*shortcut*/nullptr, /*selected*/Host::s_displayScale == 1))
-	//			Host::s_displayScale = 1;
-	//		if (ImGui::MenuItem("x2", /*shortcut*/nullptr, /*selected*/Host::s_displayScale == 2))
-	//			Host::s_displayScale = 2;
-	//		if (ImGui::MenuItem("x3", /*shortcut*/nullptr, /*selected*/Host::s_displayScale == 3))
-	//			Host::s_displayScale = 3;
-	//		ImGui::EndMenu();
-	//	}
-	//	ImGui::MenuItem("Draw overscan", nullptr, &Host::s_drawOverscan);
-	//	ImGui::MenuItem("Draw VRAM", nullptr, &Host::s_drawVRAM);
-	//	ImGui::EndMenu();
-	//}
-
-	//// Audio
-	//if (ImGui::BeginMenu("Audio"))
-	//{
-	//	ImGui::MenuItem("Test tone", nullptr, &Host::s_playTestTone);
-	//	ImGui::EndMenu();
-	//}
-
-	//// Controllers
-	//if (ImGui::BeginMenu("Controllers"))
-	//{
-	//	SIO& sio = bus.GetSIO();
-	//	for (unsigned int portIndex = 0; portIndex < SIO::kNumPorts; portIndex++)
-	//	{
-	//		char label[32];
-	//		unsigned int portNumber = 1 + portIndex; // 1-based for user friendliness
-	//		SafeSnprintf(label, sizeof(label), "Controller %u", portNumber);
-	//		if (ImGui::BeginMenu(label))
-	//		{
-	//			ControllerPort& port = sio.GetPort(portIndex);
-	//			bool controllerConnected = port.IsControllerConnected();
-	//			Controller& controller = port.GetController();
-	//			Controller::Type controllerType = controller.GetType();
-	//			if (ImGui::MenuItem("Digital", nullptr, /*selected*/controllerConnected && controllerType == Controller::Type::Digital))
-	//			{
-	//				if (controllerType != Controller::Type::Digital)
-	//					controller.SetType(Controller::Type::Digital);
-	//				if (!controllerConnected)
-	//					port.SetControllerConnected(true);
-	//			}
-	//			if (ImGui::MenuItem("Analogue", nullptr, /*selected*/controllerConnected && controller.GetType() == Controller::Type::Analogue))
-	//			{
-	//				if (controllerType != Controller::Type::Analogue)
-	//					controller.SetType(Controller::Type::Analogue);
-	//				if (!controllerConnected)
-	//					port.SetControllerConnected(true);
-	//			}
-	//			if (ImGui::MenuItem("None", nullptr, /*selected*/!controllerConnected))
-	//			{
-	//				port.SetControllerConnected(false);
-	//			}
-
-	//			ImGui::Separator();
-
-	//			if (ImGui::MenuItem("Left stick = DPAD in digital mode", nullptr, s_hostLeftAnalogueStickToDpadInDigitalMode[portIndex]))
-	//				s_hostLeftAnalogueStickToDpadInDigitalMode[portIndex] = !s_hostLeftAnalogueStickToDpadInDigitalMode[portIndex];
-
-	//			ImGui::EndMenu();
-	//		}
-	//	}
-
-	//	ImGui::EndMenu();
-	//}
-
-	//// Memory Cards
-	//if (ImGui::BeginMenu("Memory Cards"))
-	//{
-	//	SIO& sio = bus.GetSIO();
-	//	for (unsigned int portIndex = 0; portIndex < SIO::kNumPorts; portIndex++)
-	//	{
-	//		char label[32];
-	//		unsigned int memCardNumber = 1 + portIndex; // 1-based for user friendliness
-	//		SafeSnprintf(label, sizeof(label), "Memory Card %u", memCardNumber);
-	//		if (ImGui::BeginMenu(label))
-	//		{
-	//			ControllerPort& port = sio.GetPort(portIndex);
-	//			MemoryCard& card = port.GetMemoryCard();
-	//			bool cardInserted = port.IsMemoryCardInserted();
-	//			if (ImGui::MenuItem("Load..."))
-	//			{
-	//				// This call returns immediately
-	//				MemoryCardFileDialog::ShowOpenFileDialog(portIndex, pWindow);
-	//			}
-	//			if (ImGui::MenuItem("Save...", nullptr, false, cardInserted))
-	//			{
-	//				// This call returns immediately
-	//				MemoryCardFileDialog::ShowSaveFileDialog(portIndex, pWindow);
-	//			}
-	//			if (ImGui::MenuItem("Insert", nullptr, false, !cardInserted))
-	//			{
-	//				port.SetMemoryCardInserted(true);
-	//			}
-	//			if (ImGui::MenuItem("Eject", nullptr, false, cardInserted))
-	//			{
-	//				port.SetMemoryCardInserted(false);
-	//			}
-	//			if (ImGui::MenuItem("Format", nullptr, false, cardInserted))
-	//			{
-	//				card.Format();
-	//			}
-	//			ImGui::EndMenu();
-	//		}
-	//	}
-	//	ImGui::EndMenu();
-	//}
-
-	//// Logging
-	//if (ImGui::BeginMenu("Logging"))
-	//{
-	//	ImGui::MenuItem("Log GP0", nullptr, &s_logGP0);
-	//	ImGui::MenuItem("Log GP1", nullptr, &s_logGP1);
-	//	ImGui::MenuItem("Log GPUREAD", nullptr, &s_logGPUREAD);
-	//	ImGui::MenuItem("Log GPUSTAT", nullptr, &s_logGPUSTAT);
-	//	ImGui::MenuItem("Log Unimplemented GPU Features", nullptr, &s_logUnimplementedGpuFeatures);
-	//	ImGui::Separator();
-	//	ImGui::MenuItem("Log DMA Registers", nullptr, &s_logDMARegisterAccess);
-	//	ImGui::MenuItem("Log DMA", nullptr, &s_logDMA);
-	//	ImGui::MenuItem("Log Interrupt Registers", nullptr, &s_logInterruptRegisterAccess);
-	//	ImGui::MenuItem("Log Interrupts", nullptr, &s_logInterrupts);
-	//	ImGui::MenuItem("Log Timers", nullptr, &s_logTimers);
-	//	ImGui::MenuItem("Log Timer Reads", nullptr, &s_logTimerReads);
-	//	ImGui::MenuItem("Log CDROM", nullptr, &s_logCDROM);
-	//	ImGui::MenuItem("Log SPU", nullptr, &g_logSPU);
-	//	ImGui::MenuItem("Log SIO", nullptr, &g_logSIO);
-	//	ImGui::MenuItem("Log Memory Card", nullptr, &g_logMemoryCard);
-	//	ImGui::Separator();
-	//	ImGui::MenuItem("Log Memory Control Registers", nullptr, &s_logMemoryControlRegisterAccess);
-	//	ImGui::MenuItem("Log Cache Control Registers", nullptr, &s_logCacheControlRegisterAccess);
-	//	ImGui::MenuItem("Log Expansion 2 Registers", nullptr, &s_logExpansion2RegisterAccess);
-	//	ImGui::EndMenu();
-	//}
-
-	//// Window
-	//if (ImGui::BeginMenu("Window"))
-	//{
-	//	ImGui::MenuItem("CPU Window", nullptr, &CPUWindow::s_visible);
-	//	ImGui::MenuItem("DMA Window", nullptr, &DMAWindow::s_visible);
-	//	ImGui::MenuItem("GPU Window", nullptr, &GPUWindow::s_visible);
-	//	ImGui::MenuItem("SPU Window", nullptr, &SPUWindow::s_visible);
-	//	ImGui::MenuItem("CD Window", nullptr, &CDWindow::s_visible);
-	//	ImGui::MenuItem("CDROM Window", nullptr, &CDROMWindow::s_visible);
-	//	ImGui::MenuItem("Memory Card Window", nullptr, &MemoryCardWindow::s_visible);
-	//	ImGui::MenuItem("Host Window", nullptr, &HostWindow::s_visible);
-	//	ImGui::EndMenu();
-	//}
-
-	//// Help
-	//if (ImGui::BeginMenu("Help"))
-	//{
-	//	ImGui::MenuItem("Show ImGui Demo Window", nullptr, &ImGuiDemoWindow::s_showDemoWindow);
-	//	ImGui::MenuItem("Show ImGui About Window", nullptr, &ImGuiDemoWindow::s_showAboutWindow);
-	//	ImGui::EndMenu();
-	//}
-
-	//// Show CDROM head position to right of main menu bar for convenience.
-	//// Hacky right align. See https://github.com/ocornut/imgui/issues/5875
-	//ImVec2 textSize = ImGui::CalcTextSize("Head MSF: 00:00:00 LBA: 0x00000000___"); // few extra chars
-	//if (textSize.x <= ImGui::GetContentRegionAvail().x) // Don't show if not enough space.
-	//{
-	//	ImGui::SameLine(ImGui::GetWindowWidth() - textSize.x - ImGui::GetStyle().FramePadding.x);
-
-	//	unsigned int m, s, f;
-	//	u32 headLBA = Host::GetBus().GetCDROM().GetHeadLBA();
-	//	CD::LBAtoMSF(headLBA, m, s, f);
-	//	ImGui::BeginDisabled(true);
-	//	ImGui::Text("Head MSF: %02u:%02u:%02u LBA: 0x%08X\n", m, s, f, headLBA); // MSF conventionally printed in decimal
-	//	ImGui::EndDisabled();
-	//}
-
-	//float menuBarHeight = ImGui::GetWindowSize().y;
-	//ImGui::EndMainMenuBar();
-	//return (unsigned int)menuBarHeight;
 }
 
 static void updateGUI()
@@ -979,6 +764,9 @@ int main(int argc, char** argv)
 	xgui::Colors::Menu = { 0.0509803922f, 0.0666666667f, 0.0901960784f, 1.0f };
 	xgui::Colors::MenuHover = { 0.0509803922f + 0.15f, 0.0666666667f + 0.15f, 0.0901960784f + 0.15f, 1.0f };
 
+	// TODO: multi-monitor better support
+	double refreshRate = (double)window->GetMonitorRefreshRate();
+
 	while (!s_quit)
 	{
 		s_quit = window->ShouldClose();
@@ -1018,10 +806,10 @@ int main(int argc, char** argv)
 		prevTime = currentTime;
 		// TODO: frame skip
 		if (frameTimeSeconds > 0.5)
-			frameTimeSeconds = 1.0 / 60.0; // Probably debugging.
+			frameTimeSeconds = 1.0 / refreshRate; // Probably debugging
 
 		// TODO: Get refresh rate
-		Host::Update(/* displayFramePeriodSeconds */ 1.0 / 60.0, frameTimeSeconds);
+		Host::Update(/* displayFramePeriodSeconds */ 1.0 / refreshRate, frameTimeSeconds);
 		//Host::Render(menuBarHeight);
 
 		xgui::endFrame();

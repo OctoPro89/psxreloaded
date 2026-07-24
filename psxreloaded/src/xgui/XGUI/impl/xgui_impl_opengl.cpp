@@ -389,10 +389,18 @@ namespace xgui
 
                     font::GlyphInfo& g = ctx.glyphs[c];
 
+                    /*
                     f32 x0 = xpos + g.xoff;
                     f32 y0 = ypos + g.yoff;
                     f32 w = (g.u1 - g.u0) * 512.0f; // atlas size hardcoded to 512
                     f32 h = (g.v1 - g.v0) * 512.0f;
+                    */
+                    const f32 scale = cmd.size / 20.0f;
+                    f32 x0 = xpos + g.xoff * scale;
+                    f32 y0 = ypos + g.yoff * scale;
+
+                    f32 w = (g.u1 - g.u0) * 512.0f * scale;
+                    f32 h = (g.v1 - g.v0) * 512.0f * scale;
 
                     // Positions: z=0.0
                     __vertices__.insert(__vertices__.end(), {
@@ -408,7 +416,8 @@ namespace xgui
                         });
 
                     index_offset += 4;
-                    xpos += g.xadvance; // move to next glyph
+                    xpos += g.xadvance * scale; // account for text size
+                    //xpos += g.xadvance; // move to next glyph
                 }
 
                 // Upload geometry

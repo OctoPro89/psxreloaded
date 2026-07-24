@@ -64,6 +64,15 @@ namespace xgui
         const char* dock_text;
     };
 
+    // defines how these commands will be sorted
+    enum
+    {
+        XGUI_COMMAND_RECORDER_DEFAULT = 0,
+        XGUI_COMMAND_RECORDER_WINDOW = 1,
+        XGUI_COMMAND_RECORDER_MENU = 2,
+        XGUI_COMMAND_RECORDER_TOP = 3,
+    };
+
     // UI context (singleton)
     struct XAPI Context
     {
@@ -142,6 +151,8 @@ namespace xgui
 
         bool clip = false;
         Rect current_clip{};
+
+        int commandRecorder = XGUI_COMMAND_RECORDER_DEFAULT;
 
         struct
         {
