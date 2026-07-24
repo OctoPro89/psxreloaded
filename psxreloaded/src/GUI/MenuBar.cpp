@@ -18,6 +18,7 @@
 #include "psx/Bus.h"
 #include "core/Log.h"
 
+extern double frameTimeSeconds;
 
 bool MenuBar::Update(bool s_mainMenuBarVisible)
 {
@@ -147,9 +148,11 @@ bool MenuBar::Update(bool s_mainMenuBarVisible)
 			wlayout.UItext("Graphics Info:", 15.0f);
 			wlayout.UItext("    Graphics API: OpenGL", 15.0f);
 			wlayout.UItext("    Renderer: emulated PSX rasterizer", 15.0f);
+			char buf[100];
+			snprintf(buf, 100, "    Frame time (ms): %.2f", (float)frameTimeSeconds * 1000);
+			wlayout.UItext(buf, 15.0f);
 			wlayout.UItext("Audio Info:", 15.0f);
 			wlayout.UItext("    Audio backend: WASAPI", 15.0f);
-			char buf[100];
 			snprintf(buf, 100, "    Current host sampling rate: %d kHz", platform_audio_output_sample_rate);
 			wlayout.UItext(buf, 15.0f);
 			snprintf(buf, 100, "    Resampling method: Static %d kHz (host) to 44100 kHz (PSX)", platform_audio_output_sample_rate);

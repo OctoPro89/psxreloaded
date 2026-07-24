@@ -99,6 +99,7 @@ bool backspace = false;
 bool del = false;
 
 extern const bool* m_keys = NULL;
+extern double frameTimeSeconds = 0.0;
 
 Win32Window* window{};
 
@@ -1013,14 +1014,14 @@ int main(int argc, char** argv)
 		}
 
 		double currentTime = window->GetTime();
-		double frameTimeSeconds = currentTime - prevTime;
+		frameTimeSeconds = currentTime - prevTime;
 		prevTime = currentTime;
 		// TODO: frame skip
 		if (frameTimeSeconds > 0.5)
-			frameTimeSeconds = 1.0 / 170.0; // Probably debugging.
+			frameTimeSeconds = 1.0 / 60.0; // Probably debugging.
 
 		// TODO: Get refresh rate
-		Host::Update(/* displayFramePeriodSeconds */ 1.0 / 170.0, frameTimeSeconds);
+		Host::Update(/* displayFramePeriodSeconds */ 1.0 / 60.0, frameTimeSeconds);
 		//Host::Render(menuBarHeight);
 
 		xgui::endFrame();
