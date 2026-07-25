@@ -1817,9 +1817,17 @@ static void ditherColour(unsigned int x, unsigned int y, u8& r8, u8& g8, u8& b8)
 // - The ryg blog "Triangle rasterization in practice" https://fgiesen.wordpress.com/2013/02/08/triangle-rasterization-in-practice/
 // - The ryg blog "Optimizing the basic rasterizer" https://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
 //
+#include "../renderering/HardwareRenderer.h"
 template<bool gouraud, bool textured, bool dither>
 void GPU::drawTriangle(const Vertex& vertex0, Vertex vertex1, Vertex vertex2, bool semitransparent, bool modulate)
 {
+	float vertices[3][2] = { { (float)vertex0.x, (float)vertex0.y }, { (float)vertex1.x, (float)vertex1.y }, { (float)vertex2.x, (float)vertex2.y } };
+	HardwareRenderer::RenderFlags flags{};
+	flags.dithering = dither;
+	flags.shading = gouraud;
+	flags.texture_mode = textured;
+	flags.semi_transparency = semitransparent;
+	HardwareRenderer::Get()->PushTriangle(vertices, nullptr, flags); return;
 	// Calculate screen space vertex positions
 	Point p0{ vertex0.x + m_drawingOffsetX, vertex0.y + m_drawingOffsetY };
 	Point p1{ vertex1.x + m_drawingOffsetX, vertex1.y + m_drawingOffsetY };

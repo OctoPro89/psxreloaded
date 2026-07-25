@@ -64,6 +64,12 @@ void R3000::Reset()
 
 void R3000::ExecuteInstruction()
 {
+	if (kUseDynarec)
+	{
+		StepDynarec();
+		return;
+	}
+
 	// Store address of current opcode for use in instructions that use it e.g. J, JAL, BEQ, BNE
 	m_PC = m_fetchPC;
 
@@ -382,6 +388,354 @@ void R3000::ExecuteInstruction()
 	}
 }
 
+// ---
+
+#include <dynarec/Dynarec.h>
+#include <dynarec/x64/Emitter.h>
+#include <core/Log.h>
+
+bool R3000::ExecutePrelog()
+{
+	// Store address of current opcode for use in instructions that use it e.g. J, JAL, BEQ, BNE
+	m_PC = m_fetchPC;
+
+	if (m_PC & 3)
+	{
+		m_BadVaddr = m_PC;
+		triggerException(ExcCode::AdEL);
+		return false;
+	}
+
+	// The next instruction in memory will be executed even if this instruction branches.
+	// This instruction is said to be in the branch delay slot.
+	m_fetchPC = m_nextFetchPC;
+
+	// If no branch is taken, this will be the address of the next opcode.
+	// If this instruction branches, then it can set next PC, and it will be executed
+	// after the instruction in the branch delay slot
+	m_nextFetchPC += 4; // All opcodes are 32-bits
+
+	// If the previous instruction was a branch, then this is a branch delay slot.
+	// Implementation note: triggerException needs m_branchDelaySlot to have been updated for correct behaviour if interrupt occurs in a branch delay slot. 
+	m_branchDelaySlot = m_branch;
+	m_branch = false;
+
+	processDelayedLoads();
+
+	// Fetch opcode
+	u32 opcode = m_pReadWord(m_PC, m_userdata);
+
+	// Process interrupts
+
+	// To avoid glitches in games such as Crash, IRQs should not be processed if the current instruction is a GTE command.
+	// https://psx-spx.consoledev.net/cpuspecifications/#interrupts-vs-gte-commands
+	bool isCOP2 = (opcode & 0xFE000000) == 0x4A000000;
+	if (!isCOP2)
+	{
+		//
+		// "An active level on any [interrupt] pin is sensed in each cycle, and will cause an exception if enabled." - R3000.pdf. 
+		//
+		// An interrupt exception is executed if both:
+		// - SR bit 0 (IEc Current Interrupt Enable) is set, and
+		// - CAUSE IP pending bit set and corresponding SR IM bit set
+		//
+		// We use the full 8-bit field to check for software interrupts too.
+		u32 im = (m_sr >> 8) & 0xff; // 6-bit hardware interrupt mask field (correponding to CAUSE IP field) + 2-bit software interrupt mask field, 
+		u32 ip = (m_cause.val >> 8) & 0xff; // bits 15:8 (IP and WS fields) combined
+		if ((m_sr & SRF_IEC) && (im & ip))
+		{
+			//		LOG_INFO("[CPU] %08X Triggering interrupt %s\n", m_PC, m_branchDelaySlot ? "in branch delay slot" : "");
+
+			// For interrupts, the EPC stored is the address of the next instruction that would have been executed had the interrupt not occurred.
+			// m_EPC <- m_PC
+			// m_fetchPC = handlerAddress;
+			// m_nextFetchPC = m_fetchPC + 4;
+			triggerException(ExcCode::Int);
+
+			// Return so pipeline can naturally advance m_PC <- m_fetchPC <- m_nextFetchPC.
+			// This also give the host a chance to display the handle the first handler instruction before executing it (disassemble, breakpoint etc.)
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool R3000::ExecuteOp(u32 opcode)
+{
+	m_exceptionRaised = false;
+
+	// Decode and execue
+	// Primary opcode field is bits 31:26
+	const u32 primaryOpcode = opcode >> 26;
+	switch (primaryOpcode)
+	{
+	case 0x00:
+	{
+		const u32 secondaryOpcode = opcode & 0x3f;
+		switch (secondaryOpcode)
+		{
+		case 0x00:
+			executeSLL(opcode);
+			break;
+		case 0x02:
+			executeSRL(opcode);
+			break;
+		case 0x03:
+			executeSRA(opcode);
+			break;
+		case 0x04:
+			executeSLLV(opcode);
+			break;
+		case 0x06:
+			executeSRLV(opcode);
+			break;
+		case 0x07:
+			executeSRAV(opcode);
+			break;
+		case 0x08:
+			executeJR(opcode);
+			break;
+		case 0x09:
+			executeJALR(opcode);
+			break;
+		case 0x0C:
+			executeSYSCALL(opcode);
+			break;
+		case 0x0D:
+			executeBREAK(opcode);
+			break;
+		case 0x10:
+			executeMFHI(opcode);
+			break;
+		case 0x11:
+			executeMTHI(opcode);
+			break;
+		case 0x12:
+			executeMFLO(opcode);
+			break;
+		case 0x13:
+			executeMTLO(opcode);
+			break;
+		case 0x18:
+			executeMULT(opcode);
+			break;
+		case 0x19:
+			executeMULTU(opcode);
+			break;
+		case 0x1A:
+			executeDIV(opcode);
+			break;
+		case 0x1B:
+			executeDIVU(opcode);
+			break;
+		case 0x20:
+			executeADD(opcode);
+			break;
+		case 0x21:
+			executeADDU(opcode);
+			break;
+		case 0x22:
+			executeSUB(opcode);
+			break;
+		case 0x23:
+			executeSUBU(opcode);
+			break;
+		case 0x24:
+			executeAND(opcode);
+			break;
+		case 0x25:
+			executeOR(opcode);
+			break;
+		case 0x26:
+			executeXOR(opcode);
+			break;
+		case 0x27:
+			executeNOR(opcode);
+			break;
+		case 0x2A:
+			executeSLT(opcode);
+			break;
+		case 0x2B:
+			executeSLTU(opcode);
+			break;
+		default:
+			triggerException(ExcCode::RI); // Reserved Instruction
+		}
+
+		break;
+	}
+
+	case 0x01:
+		executeBcondZ(opcode);
+		break;
+	case 0x02:
+		executeJ(opcode);
+		break;
+	case 0x03:
+		executeJAL(opcode);
+		break;
+	case 0x4:
+		executeBEQ(opcode);
+		break;
+	case 0x05:
+		executeBNE(opcode);
+		break;
+	case 0x06:
+		executeBLEZ(opcode);
+		break;
+	case 0x07:
+		executeBGTZ(opcode);
+		break;
+	case 0x08:
+		executeADDI(opcode);
+		break;
+	case 0x09:
+		executeADDIU(opcode);
+		break;
+	case 0x0A:
+		executeSLTI(opcode);
+		break;
+	case 0x0B:
+		executeSLTIU(opcode);
+		break;
+	case 0x0C:
+		executeANDI(opcode);
+		break;
+	case 0x0D:
+		executeORI(opcode);
+		break;
+	case 0x0E:
+		executeXORI(opcode);
+		break;
+	case 0x0F:
+		executeLUI(opcode);
+		break;
+	case 0x10: // COP0
+	{
+		// n.b. CFCz and CTCz are not valid for COP 0
+
+		if ((opcode & 0xffe0003f) == 0x40000000)
+			executeMFC0(opcode);
+		else if ((opcode & 0xffe0003f) == 0x40800000)
+			executeMTC0(opcode);
+		else if ((opcode & 0xffe0003f) == 0x42000010)
+			executeRFE(opcode);
+		else
+		{
+			HP_FATAL_ERROR("Invalid instruction?");
+		}
+		break;
+	}
+	case 0x11:
+	{
+		// No COP1 (FPU) on PSX
+		triggerException(ExcCode::CpU); // Coprocessor Unusable
+		break;
+	}
+	case 0x12: // COP2 = PSX GTE
+	{
+		if ((opcode & 0xffe0003f) == 0x48000000)
+			executeMFC2(opcode);
+		else if ((opcode & 0xffe0003f) == 0x48400000)
+			executeCFC2(opcode);
+		else if ((opcode & 0xffe0003f) == 0x48800000)
+			executeMTC2(opcode);
+		else if ((opcode & 0xffe0003f) == 0x48c00000)
+			executeCTC2(opcode);
+		else if ((opcode & 0xfe000000) == 0x4a000000)
+			executeCOP2(opcode);
+		else
+			HP_FATAL_ERROR("Invalid instruction?");
+		break;
+	}
+	case 0x13:
+	{
+		// No COP3 (FPU) on PSX
+		triggerException(ExcCode::CpU); // Coprocessor Unusable
+		break;
+	}
+	case 0x20:
+		executeLB(opcode);
+		break;
+	case 0x21:
+		executeLH(opcode);
+		break;
+	case 0x22:
+		executeLWL(opcode);
+		break;
+	case 0x23:
+		executeLW(opcode);
+		break;
+	case 0x24:
+		executeLBU(opcode);
+		break;
+	case 0x25:
+		executeLHU(opcode);
+		break;
+	case 0x26:
+		executeLWR(opcode);
+		break;
+	case 0x28:
+		executeSB(opcode);
+		break;
+	case 0x29:
+		executeSH(opcode);
+		break;
+	case 0x2A:
+		executeSWL(opcode);
+		break;
+	case 0x2B:
+		executeSW(opcode);
+		break;
+	case 0x2E:
+		executeSWR(opcode);
+		break;
+	case 0x30:
+		executeLWC0(opcode);
+		break;
+	case 0x31:
+		executeLWC1(opcode);
+		break;
+	case 0x32:
+		executeLWC2(opcode);
+		break;
+	case 0x33:
+		executeLWC3(opcode);
+		break;
+	case 0x38:
+		executeSWC0(opcode);
+		break;
+	case 0x39:
+		executeSWC1(opcode);
+		break;
+	case 0x3A:
+		executeSWC2(opcode);
+		break;
+	case 0x3B:
+		executeSWC3(opcode);
+		break;
+	default:
+		triggerException(ExcCode::RI); // Reserved Instruction
+		break;
+	}
+
+	return !m_exceptionRaised;
+}
+
+void R3000::StepDynarec()
+{
+	dynarec::Compiler compiler(*this);
+	LOG_INFO("Compile start fetchPC=%08X\n", m_fetchPC);
+	dynarec::CompiledBlock block = compiler.CompileBlock(m_fetchPC);
+	LOG_INFO("Compiled block start=%08X first=%08X\n", block.startPC, block.instructions.front().pc);
+
+	dynarec::Emitter emitter = dynarec::Emitter(*this);
+	emitter.EmitBlock(block);
+}
+
+// ---
+
 void R3000::SetCallbacks(ReadByte* pReadByte, ReadHalfWord* pReadHalfWord, ReadWord* pReadWord, WriteByte* pWriteByte, WriteHalfWord* pWriteHalfWord, WriteWord* pWriteWord, void* userdata)
 {
 	m_pReadByte = pReadByte;
@@ -454,6 +808,10 @@ void R3000::processDelayedLoads()
 
 void R3000::triggerException(ExcCode excCode)
 {
+	// ---
+		m_exceptionRaised = true;
+	// ---
+
 	// Update the 3-deep 2 bit wide KU/IE stack.
 	// Bits shifted out are lost, and should be managed by the kernel software if required.
 	// Zero bits are shifted into the bottom KUc/IEc bits which puts the CPU in kernel mode and disables interrupts.

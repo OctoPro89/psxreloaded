@@ -8,6 +8,7 @@ public:
 
 	static const unsigned int kBytesPerPixel = 4;
 
+	Texture() = default;
 	Texture(unsigned int width, unsigned int height, const char* name);
 	~Texture();
 

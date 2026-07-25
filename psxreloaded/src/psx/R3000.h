@@ -32,6 +32,10 @@ Note that the PlayStation CPU does not have floating point coprocessor.
 
 #include "core/Types.h"
 
+// ---
+namespace dynarec { class Emitter; class Compiler; }
+// ---
+
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4201) // nonstandard extension used: nameless struct/union
@@ -112,6 +116,15 @@ public:
 	// The COP0 CAUSE register 13 has six hardware interrupt bits in the IP field (bits 15:10) which directly correspond to the external interrupt pins.
 	unsigned int GetInterruptPins() const { return m_cause.IP; };
 
+	// ---
+	bool ExecutePrelog();
+	bool ExecuteOp(u32 opcode);
+	void StepDynarec();
+	friend class dynarec::Compiler;
+	friend class dynarec::Emitter;
+	const bool kUseDynarec = false;
+	bool m_exceptionRaised = false;
+	// ---
 private:
 
 	// R3000 reset vector

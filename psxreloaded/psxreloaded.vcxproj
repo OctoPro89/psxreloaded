@@ -161,6 +161,8 @@
     <ClInclude Include="src\core\RingBuffer.h" />
     <ClInclude Include="src\core\StringHelpers.h" />
     <ClInclude Include="src\core\Types.h" />
+    <ClInclude Include="src\dynarec\Dynarec.h" />
+    <ClInclude Include="src\dynarec\x64\Emitter.h" />
     <ClInclude Include="src\GUI\GuiUtils.h" />
     <ClInclude Include="src\GUI\MenuBar.h" />
     <ClInclude Include="src\Host.h" />
@@ -195,6 +197,7 @@
     <ClInclude Include="src\psx\SPU.h" />
     <ClInclude Include="src\psx\Timers.h" />
     <ClInclude Include="src\psx\Timing.h" />
+    <ClInclude Include="src\renderering\HardwareRenderer.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\xgui\Filesystem.h" />
     <ClInclude Include="src\xgui\GLMath.h" />
@@ -208,6 +211,8 @@
     <ClCompile Include="src\core\Parse.cpp" />
     <ClCompile Include="src\core\RingBuffer.cpp" />
     <ClCompile Include="src\core\StringHelpers.cpp" />
+    <ClCompile Include="src\dynarec\Dynarec.cpp" />
+    <ClCompile Include="src\dynarec\x64\Emitter.cpp" />
     <ClCompile Include="src\GUI\MenuBar.cpp" />
     <ClCompile Include="src\platform\AudioResampler.cpp" />
     <ClCompile Include="src\platform\platform.c" />
@@ -241,6 +246,7 @@
     <ClCompile Include="src\psx\SIO.cpp" />
     <ClCompile Include="src\psx\SPU.cpp" />
     <ClCompile Include="src\psx\Timers.cpp" />
+    <ClCompile Include="src\renderering\HardwareRenderer.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\xgui\XGUI\impl\xgui_impl_opengl.cpp" />
     <ClCompile Include="src\xgui\XGUI\xgui_colors.cpp" />

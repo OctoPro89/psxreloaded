@@ -36,6 +36,10 @@
 #include <stdlib.h> // EXIT_FAILURE
 #include <mutex>
 
+#include <dynarec/Dynarec.h>
+
+#include <renderering/HardwareRenderer.h>
+
 struct CommandLineArgs
 {
 	const char* biosPath = nullptr;
@@ -171,16 +175,16 @@ xgui::InputState pollEventsAndGetKeyboard()
 		const InputState* controller0 = controller_input_get_controller(0);
 		input.mouse_down[0] = controller0->buttons[BUTTON_L1];
 
-		static int x = 0;
-		static int y = 0;
+		static float x = 0;
+		static float y = 0;
 		x += controller0->left_x * 5.0f;
 		y -= controller0->left_y * 5.0f;
 		input.mouse_pos.x = x;
 		input.mouse_pos.y = y;
-		if (input.mouse_pos.x > window->GetWidth()) { x = window->GetWidth(); }
-		if (input.mouse_pos.y > window->GetWidth()) { y = window->GetWidth(); }
-		if (input.mouse_pos.x < 0) { x = 0; }
-		if (input.mouse_pos.y < 0) { y = 0; }
+		if (input.mouse_pos.x > window->GetWidth()) { x = (float)window->GetWidth(); }
+		if (input.mouse_pos.y > window->GetWidth()) { y = (float)window->GetWidth(); }
+		if (input.mouse_pos.x < 0) { x = 0.0f; }
+		if (input.mouse_pos.y < 0) { y = 0.0f; }
 		ctx.commandRecorder = xgui::XGUI_COMMAND_RECORDER_TOP;
 		xgui::internal::renderRect({ input.mouse_pos.x - 5.0f, input.mouse_pos.y - 5.0f, 10.0f, 10.0f }, { 1.0f, 0.1f, 0.1f, 1.0f }, 5.0f);
 		ctx.commandRecorder = xgui::XGUI_COMMAND_RECORDER_DEFAULT;
@@ -767,6 +771,24 @@ int main(int argc, char** argv)
 	// TODO: multi-monitor better support
 	double refreshRate = (double)window->GetMonitorRefreshRate();
 
+	/*
+	dynarec::Compiler compiler = dynarec::Compiler(Host::GetBus().GetCPU());
+	dynarec::CompiledBlock block = compiler.CompileBlock(0xbfc0'0000);
+
+	for (size_t i = 0; i < block.instructions.size(); ++i)
+	{
+		const auto& ins = block.instructions[i];
+		const dynarec::Opcode* def = dynarec::Compiler::DecodeOpcode(ins.raw);
+
+		printf("%08X : %08X [%s]\n",
+			ins.pc,
+			ins.raw,
+			def ? def->instruction : "unknown");
+	}
+	*/
+
+	hw_renderer_singleton.Init();
+
 	while (!s_quit)
 	{
 		s_quit = window->ShouldClose();
@@ -812,7 +834,13 @@ int main(int argc, char** argv)
 		Host::Update(/* displayFramePeriodSeconds */ 1.0 / refreshRate, frameTimeSeconds);
 		//Host::Render(menuBarHeight);
 
+		hw_renderer_singleton.Render();
+		xgui::beginWindow("Output", 500.0f, 500.0f, 640.0f, 640.0f, true);
+
+		xgui::endWindow();
+
 		xgui::endFrame();
+		glViewport(0, 0, window->GetWidth(), window->GetHeight());
 		window->SwapDC();
 
 		// revert state
