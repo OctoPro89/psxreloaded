@@ -103,11 +103,7 @@ bool MenuBar::Update(bool s_mainMenuBarVisible)
 
 			static int selected = 0;
 			if (controller0_state->left_x > 0.2f || controller0_state->left_x < -0.2f || controller0_state->left_y > 0.2f || controller0_state->left_y < -0.2f) { uiControllerMode = 2; }
-			if (uiControllerMode == 2)
-			{ 
-				ctx.commandRecorder = xgui::XGUI_COMMAND_RECORDER_DEFAULT;
-				goto menus;
-			}
+
 			if (INPUT_PRESSED(controller0_state, BUTTON_LEFT))
 			{
 				uiControllerMode = 1;
@@ -117,6 +113,12 @@ bool MenuBar::Update(bool s_mainMenuBarVisible)
 			{
 				uiControllerMode = 1;
 				if ((selected + 1) < 6) { selected += 1; }
+			}
+
+			if (uiControllerMode == 2)
+			{ 
+				ctx.commandRecorder = xgui::XGUI_COMMAND_RECORDER_DEFAULT;
+				goto menus;
 			}
 
 			switch (selected)
@@ -143,7 +145,7 @@ bool MenuBar::Update(bool s_mainMenuBarVisible)
 				break;
 			}
 
-			if (INPUT_PRESSED(controller0_state, BUTTON_DOWN))
+			if (INPUT_PRESSED(controller0_state, BUTTON_L1))
 			{
 				switch (selected)
 				{
@@ -516,10 +518,9 @@ menus:
 			xgui::WindowedUILayout wlayout{};
 			wlayout.UIbegin(0.95f, 20.0f);
 			wlayout.UItext("Using a controller on the menubar:", 15.0f);
-			wlayout.UItext("    Hold START + R2 and use the D-Pad to control the red dot", 15.0f);
-			wlayout.UItext("    Press D-Pad down to select an option", 15.0f);
-			wlayout.UItext("    Once a menu is open, use the left stick to control the virtual mouse", 15.0f);
-			wlayout.UItext("    With the virtual mouse, use L1 to click", 15.0f);
+			wlayout.UItext("    Hold START + R2 and use the D-Pad to select menus", 15.0f);
+			wlayout.UItext("    Use the left stick to control the virtual mouse", 15.0f);
+			wlayout.UItext("    Use L1 to select click", 15.0f);
 			
 			xgui::endWindow();
 		}
