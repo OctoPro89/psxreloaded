@@ -309,6 +309,7 @@ static void updateVramTexture()
 	};
 
 	VRAMConvert::ConvertToR8G8B8A8_UNORM(vram, srcRect, DisplayFormat::A1B5G5R5, s_vramImageData, dstRect, kVRAMTextureWidthPixels, kVRAMHeightLines);
+	s_pVramTexture->Upload(s_vramImageData);
 }
 
 // TODO: fix popping
@@ -533,4 +534,9 @@ float Host::GetCurrentAudioResamplingFrequencyRatio()
 Texture* Host::GetDisplayTexture()
 {
 	return s_pDisplayTexture;
+}
+
+Texture* Host::GetVRAMTexture()
+{
+	return s_pVramTexture;
 }

@@ -835,12 +835,11 @@ int main(int argc, char** argv)
 		//Host::Render(menuBarHeight);
 
 		hw_renderer_singleton.Render();
-		xgui::beginWindow("Output", 500.0f, 500.0f, 640.0f, 640.0f, true);
-
-		xgui::endWindow();
-
-		xgui::endFrame();
+		unsigned int texwidth = 1024;//Host::GetBus().GetGPU().GetHorizontalResolution();
+		unsigned int texheight = 512;//Host::GetBus().GetGPU().GetVerticalResolution();
+		xgui::imageView(hw_renderer_singleton.GetTexture(), (float)texwidth / 2.0f, (float)texheight / 2.0f, texwidth, texheight, 0.0f, 1.0f, 1.0f, 0.0f);
 		glViewport(0, 0, window->GetWidth(), window->GetHeight());
+		xgui::endFrame();
 		window->SwapDC();
 
 		// revert state

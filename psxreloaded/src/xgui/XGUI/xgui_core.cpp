@@ -120,7 +120,7 @@ namespace xgui
 #endif // XGUI_IMPL_OPENGL
 
             // could use c:\\Windows\\Fonts\\segoeui.ttf on windows as a default
-            return font::loadFontSDF("C:/Users/vince/Downloads/Cascadia_Code/static/CascadiaCode-Medium.ttf", s_context->text_size, &s_context->font_texture, &s_context->glyphs[0]);
+            return font::loadFontSDF("C:/Users/nancy/Downloads/Cascadia_Code/static/CascadiaCode-Medium.ttf", s_context->text_size, &s_context->font_texture, &s_context->glyphs[0]);
         }
 
         return false;

@@ -44,4 +44,5 @@ public:
 
 	// TODO: remove
 	static Texture* GetDisplayTexture();
+	static Texture* GetVRAMTexture();
 };
