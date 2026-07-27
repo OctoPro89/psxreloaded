@@ -1821,6 +1821,7 @@ static void ditherColour(unsigned int x, unsigned int y, u8& r8, u8& g8, u8& b8)
 template<bool gouraud, bool textured, bool dither>
 void GPU::drawTriangle(const Vertex& vertex0, Vertex vertex1, Vertex vertex2, bool semitransparent, bool modulate)
 {
+#ifdef EXPERIMENTAL_HW_RENDERER
 	InputVertex vertices[3] = { *(InputVertex*)&vertex0, *(InputVertex*)&vertex1, *(InputVertex*)&vertex2 };
 	HardwareRenderer::RenderFlags flags{};
 	flags.dithering = dither;
@@ -1828,7 +1829,8 @@ void GPU::drawTriangle(const Vertex& vertex0, Vertex vertex1, Vertex vertex2, bo
 	flags.texture_mode = textured;
 	flags.semi_transparency = semitransparent;
 	
-	HardwareRenderer::Get()->PushTriangle(vertices, flags, m_gpustat.textureFormat); return;
+	HardwareRenderer::Get()->PushTriangle(vertices, flags, m_gpustat.textureFormat, m_clutX_halfwords, m_clutY, (m_gpustat.texturePageXBase & 0xF) | (m_gpustat.texturePageYBase1 << 4)); return;
+#endif // EXPERIMENTAL_HW_RENDERER
 	// Calculate screen space vertex positions
 	Point p0{ vertex0.x + m_drawingOffsetX, vertex0.y + m_drawingOffsetY };
 	Point p1{ vertex1.x + m_drawingOffsetX, vertex1.y + m_drawingOffsetY };

@@ -201,6 +201,9 @@
     <ClInclude Include="src\renderering\HardwareRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Experimental.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\FileHelpers.cpp">

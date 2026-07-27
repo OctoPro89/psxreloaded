@@ -165,6 +165,8 @@ namespace dynarec
     public:
         static const Opcode* DecodeOpcode(u32 opcode);
 
+        Compiler() = default;
+        Compiler(const Compiler&) = default;
         Compiler(R3000& cpu) : m_cpu(cpu) {}
         CompiledBlock CompileBlock(u32 pcStart);
         bool EndsBlock(u32 opcode);

@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef EXPERIMENTAL_HW_RENDERER
+
 #include <core/Types.h>
 #include <vector>
 #include <Texture.h>
@@ -7,13 +9,16 @@
 
 typedef struct {
 	float x, y;
-	float r, g, b, w;
+	float r, g, b;
 	float u, v;
 
 	u8 render_type;
 	u8 flags;
-	u8 texpage;
-	u8 clut_x, clut_y;
+
+	u32 clutX_halfwords;
+	u32 clutY;
+	u32 texpage;
+	u32 B8G8R8;
 } HardwareVertex;
 
 struct InputVertex
@@ -49,7 +54,7 @@ public:
 	void Init();
 	~HardwareRenderer();
 
-	void PushTriangle(const InputVertex vertices[3], HardwareRenderer::RenderFlags drawFlags, TextureFormat textureType);
+	void PushTriangle(const InputVertex vertices[3], HardwareRenderer::RenderFlags drawFlags, TextureFormat textureType, u32 clutX_halfwords, u32 clutY, u32 texpage);
 	void UpdateTexture(int x, int y, int w, int h);
 	void Render();
 	u32 GetTexture() const;
@@ -63,6 +68,8 @@ private:
 	Texture* m_tex;
 	Texture* m_sampleTex;
 	std::vector<HardwareVertex> m_vertices;
-	std::vector<u8> m_softwareVRAM;
+	std::vector<u16> m_softwareVRAM;
 	u64 m_vertexCount;
 };
+
+#endif // EXPERIMENTAL_HW_RENDERER

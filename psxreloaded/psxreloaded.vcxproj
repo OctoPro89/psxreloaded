@@ -163,6 +163,7 @@
     <ClInclude Include="src\core\Types.h" />
     <ClInclude Include="src\dynarec\Dynarec.h" />
     <ClInclude Include="src\dynarec\x64\Emitter.h" />
+    <ClInclude Include="src\Experimental.h" />
     <ClInclude Include="src\GUI\GuiUtils.h" />
     <ClInclude Include="src\GUI\MenuBar.h" />
     <ClInclude Include="src\Host.h" />

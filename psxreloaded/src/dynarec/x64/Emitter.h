@@ -1,6 +1,9 @@
 #pragma once
 
 #include <core/Types.h>
+
+#ifdef EXPERIMENTAL_DYNAREC
+
 #include <dynarec/Dynarec.h>
 #include <psx/R3000.h>
 
@@ -15,10 +18,10 @@ namespace dynarec
     class Emitter
     {
     public:
+        Emitter() = default;
         explicit Emitter(R3000& r3000)
             : m_cpu(r3000)
-        {
-        }
+        {}
 
         void EmitBlock(const CompiledBlock& block);
 
@@ -35,3 +38,5 @@ namespace dynarec
         // X64Writer* m_writer = nullptr;
     };
 }
+
+#endif // EXPERIMENTAL_DYNAREC

@@ -26,6 +26,11 @@ public:
 	void StepInstruction();
 	void StepCycles(unsigned int cycles); // step N cycles
 
+#ifdef EXPERIMENTAL_DYNAREC
+	void StepPreDynarec(); // step N cycles
+	void StepDynarec(); // step N cycles
+#endif // EXPERIMENTAL_DYNAREC
+
 	// For the R3000, a word is 32-bits.
 	// #TODO: Hide this API or make it private if possible.
 	u8 ReadByte(u32 address);

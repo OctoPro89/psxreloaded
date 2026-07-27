@@ -64,11 +64,10 @@ void R3000::Reset()
 
 void R3000::ExecuteInstruction()
 {
-	if (kUseDynarec)
-	{
+#ifdef EXPERIMENTAL_DYNAREC
 		StepDynarec();
 		return;
-	}
+#endif // EXPERIMENTAL_DYNAREC
 
 	// Store address of current opcode for use in instructions that use it e.g. J, JAL, BEQ, BNE
 	m_PC = m_fetchPC;
@@ -388,7 +387,7 @@ void R3000::ExecuteInstruction()
 	}
 }
 
-// ---
+#ifdef EXPERIMENTAL_DYNAREC
 
 #include <dynarec/Dynarec.h>
 #include <dynarec/x64/Emitter.h>
@@ -726,15 +725,15 @@ bool R3000::ExecuteOp(u32 opcode)
 void R3000::StepDynarec()
 {
 	dynarec::Compiler compiler(*this);
-	LOG_INFO("Compile start fetchPC=%08X\n", m_fetchPC);
+	//LOG_INFO("Compile start fetchPC=%08X\n", m_fetchPC);
 	dynarec::CompiledBlock block = compiler.CompileBlock(m_fetchPC);
-	LOG_INFO("Compiled block start=%08X first=%08X\n", block.startPC, block.instructions.front().pc);
+	//LOG_INFO("Compiled block start=%08X first=%08X\n", block.startPC, block.instructions.front().pc);
 
 	dynarec::Emitter emitter = dynarec::Emitter(*this);
 	emitter.EmitBlock(block);
 }
 
-// ---
+#endif // EXPERIMENTAL_DYNAREC
 
 void R3000::SetCallbacks(ReadByte* pReadByte, ReadHalfWord* pReadHalfWord, ReadWord* pReadWord, WriteByte* pWriteByte, WriteHalfWord* pWriteHalfWord, WriteWord* pWriteWord, void* userdata)
 {
@@ -808,9 +807,9 @@ void R3000::processDelayedLoads()
 
 void R3000::triggerException(ExcCode excCode)
 {
-	// ---
+#ifdef EXPERIMENTAL_DYNAREC
 		m_exceptionRaised = true;
-	// ---
+#endif // EXPERIMENTAL_DYNAREC
 
 	// Update the 3-deep 2 bit wide KU/IE stack.
 	// Bits shifted out are lost, and should be managed by the kernel software if required.
@@ -2125,7 +2124,7 @@ void R3000::executeSRAV(u32 opcode)
 void R3000::executeJR(u32 opcode)
 {
 	u32 rs = (opcode >> 21) & 0x1f; // bits 25:21
-
+	
 	// Note: No address error at this point. If new fetch PC is no word-aligned then will occur on next fetch.
 
 	// n.b. We set next fetch PC; The opcode at fetch PC will be executed first, then followed by

@@ -787,7 +787,9 @@ int main(int argc, char** argv)
 	}
 	*/
 
+#ifdef EXPERIMENTAL_HW_RENDERER
 	hw_renderer_singleton.Init();
+#endif // EXPERIMENTAL_HW_RENDERER
 
 	while (!s_quit)
 	{
@@ -834,10 +836,12 @@ int main(int argc, char** argv)
 		Host::Update(/* displayFramePeriodSeconds */ 1.0 / refreshRate, frameTimeSeconds);
 		//Host::Render(menuBarHeight);
 
+#ifdef EXPERIMENTAL_HW_RENDERER
 		hw_renderer_singleton.Render();
 		unsigned int texwidth = 1024;//Host::GetBus().GetGPU().GetHorizontalResolution();
 		unsigned int texheight = 512;//Host::GetBus().GetGPU().GetVerticalResolution();
-		xgui::imageView(hw_renderer_singleton.GetTexture(), (float)texwidth / 2.0f, (float)texheight / 2.0f, texwidth, texheight, 0.0f, 1.0f, 1.0f, 0.0f);
+		xgui::imageView(hw_renderer_singleton.GetTexture(), (float)texwidth / 2.0f, (float)texheight / 2.0f, (float)texwidth, (float)texheight, 0.0f, 1.0f, 1.0f, 0.0f);
+#endif // EXPERIMENTAL_HW_RENDERER
 		glViewport(0, 0, window->GetWidth(), window->GetHeight());
 		xgui::endFrame();
 		window->SwapDC();

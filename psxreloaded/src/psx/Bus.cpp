@@ -223,6 +223,10 @@ void Bus::Reset()
 
 void Bus::StepInstruction()
 {
+#ifdef EXPERIMENTAL_DYNAREC
+	m_cpu.ExecuteInstruction();
+	return;
+#endif // EXPERIMENTAL_DYNAREC
 	m_scheduler.Tick(m_cpuCyclesPerInstruction);
 	m_cpu.ExecuteInstruction();
 
@@ -281,6 +285,66 @@ void Bus::StepCycles(unsigned int cycles)
 	while (m_cycleCount < targetCycleCount)
 		StepInstruction();
 }
+
+#ifdef EXPERIMENTAL_DYNAREC
+
+void Bus::StepPreDynarec()
+{
+	m_scheduler.Tick(m_cpuCyclesPerInstruction);
+}
+
+void Bus::StepDynarec()
+{
+	m_cycleCount += m_cpuCyclesPerInstruction;
+
+	// #TODO[#opt]: Schedule timers. They are very high on the debug profile.
+	unsigned int horizontalResolution = m_gpu.GetHorizontalResolution();
+	m_timers.Update(m_cpuCyclesPerInstruction, horizontalResolution, m_cpuCyclesPerInstruction);
+
+	// #TODO[#opt]: Schedule HBLANK/VBLANK
+	m_horizontalCpuCounter += m_cpuCyclesPerInstruction;
+
+	if (m_horizontalCpuCounter >= kCpuCyclesPerScanline)
+	{
+		m_horizontalCpuCounter -= kCpuCyclesPerScanline;
+		m_vpos++;
+
+		if (m_vpos == kVblankStart)
+		{
+			m_intc.SetIRQ(IRQ::IRQ0_VBLANK);
+
+			m_timers.VblankStart();
+		}
+		else if (m_vpos == kVTOT)
+		{
+			m_vpos = 0;
+
+			// VBLANK ends at scanline zero when about to draw first visible line
+			m_timers.VblankEnd();
+		}
+	}
+
+	// The hblank period is either side of the visible portion of the line.
+	// Scanline start -> | hblank  |     visible region    | hblank | <- scanline end
+	if (m_hblank)
+	{
+		if (m_horizontalCpuCounter >= kHStartCpuCycles && m_horizontalCpuCounter < kHStopCpuCycles)
+		{
+			m_hblank = false;
+			m_timers.HblankEnd();
+		}
+	}
+	else
+	{
+		if (m_horizontalCpuCounter >= kHStopCpuCycles)
+		{
+			m_hblank = true;
+			m_timers.HblankStart();
+		}
+	}
+}
+
+#endif // EXPERIMENTAL_DYNAREC
 
 //
 // Helper function to map address-space address to physical address.

@@ -2,6 +2,8 @@
 #include <Host.h>
 #include <cstddef>
 
+#ifdef EXPERIMENTAL_DYNAREC
+
 namespace dynarec
 {
 	static constexpr Opcode kOpcodes[] =
@@ -253,3 +255,5 @@ namespace dynarec
         return false;
     }
 } // namespace dynarec
+
+#endif // EXPERIMENTAL_DYNAREC
