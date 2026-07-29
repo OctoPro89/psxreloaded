@@ -1,5 +1,6 @@
-#include "Win32Window.h"
+#include "PlatformWindow.h"
 
+#ifdef _WIN32
 #include <timeapi.h>
 #include <windowsx.h>
 #include <gl/GL.h>
@@ -23,15 +24,15 @@
 #define WGL_CONTEXT_PROFILE_MASK_ARB  0x9126
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
 
-static Win32Window* g_windowInstance = nullptr;
+static PlatformWindow* g_windowInstance = nullptr;
 static LARGE_INTEGER qpc_frequency;
 
-Win32Window::Win32Window(const char* title, int width, int height)
+PlatformWindow::PlatformWindow(const char* title, int width, int height)
     : m_hwnd(nullptr),
     m_hdc(nullptr),
     m_glrc(nullptr),
     m_hInstance(GetModuleHandleA(0)),
-    m_className("Win32WindowClass"),
+    m_className("PlatformWindowClass"),
     m_shouldClose(false),
     m_eventCallback(nullptr),
     m_width(width),
@@ -45,7 +46,7 @@ Win32Window::Win32Window(const char* title, int width, int height)
     QueryPerformanceFrequency(&qpc_frequency);
 }
 
-Win32Window::~Win32Window() {
+PlatformWindow::~PlatformWindow() {
     if (m_glrc) {
         wglMakeCurrent(0, 0);
         wglDeleteContext(m_glrc);
@@ -57,7 +58,7 @@ Win32Window::~Win32Window() {
     timeEndPeriod(1);
 }
 
-void Win32Window::RegisterWindowClass() {
+void PlatformWindow::RegisterWindowClass() {
     WNDCLASSA wc = {};
     wc.lpfnWndProc = StaticWndProc;
     wc.hInstance = m_hInstance;
@@ -65,7 +66,7 @@ void Win32Window::RegisterWindowClass() {
     RegisterClassA(&wc);
 }
 
-void Win32Window::CreateAppWindow(const char* title, int width, int height) {
+void PlatformWindow::CreateAppWindow(const char* title, int width, int height) {
     RECT rect = { 0, 0, width, height };
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
 
@@ -88,12 +89,12 @@ void Win32Window::CreateAppWindow(const char* title, int width, int height) {
     SetWindowLongPtrA(m_hwnd, GWLP_USERDATA, (long long)this);
 }
 
-void Win32Window::Show() {
+void PlatformWindow::Show() {
     ShowWindow(m_hwnd, SW_SHOW);
     UpdateWindow(m_hwnd);
 }
 
-void Win32Window::PollEvents() {
+void PlatformWindow::PollEvents() {
     MSG msg;
     while (PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
         if (msg.message == WM_QUIT) {
@@ -106,27 +107,27 @@ void Win32Window::PollEvents() {
     }
 }
 
-bool Win32Window::ShouldClose() const {
+bool PlatformWindow::ShouldClose() const {
     return m_shouldClose;
 }
 
-void Win32Window::NotifyClose() {
+void PlatformWindow::NotifyClose() {
     m_shouldClose = true;
 }
 
-double Win32Window::GetTime() const {
+double PlatformWindow::GetTime() const {
     LARGE_INTEGER now;
     QueryPerformanceCounter(&now);
     return ((double)(now.QuadPart)) / (double)(qpc_frequency.QuadPart);
 }
 
-double Win32Window::GetTimeMS() const {
+double PlatformWindow::GetTimeMS() const {
     LARGE_INTEGER now;
     QueryPerformanceCounter(&now);
     return ((double)(now.QuadPart) * 1000.0) / (double)(qpc_frequency.QuadPart);
 }
 
-int Win32Window::GetMonitorRefreshRate() const
+int PlatformWindow::GetMonitorRefreshRate() const
 {
     HMONITOR hMonitor = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
     if (!hMonitor)
@@ -165,7 +166,7 @@ static void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, 
 
 #endif // _DEBUG
 
-bool Win32Window::SetupGLContext() {
+bool PlatformWindow::SetupGLContext() {
     // 1. Dummy window for extension loading
     WNDCLASSA dummyClass = { 0 };
     dummyClass.style = CS_OWNDC;
@@ -279,13 +280,13 @@ bool Win32Window::SetupGLContext() {
     return true;
 }
 
-void Win32Window::SwapDC() const
+void PlatformWindow::SwapDC() const
 {
     SwapBuffers(GetDeviceContext());
 }
 
-LRESULT CALLBACK Win32Window::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    Win32Window* window = (Win32Window*)GetWindowLongPtrA(hwnd, GWLP_USERDATA);
+LRESULT CALLBACK PlatformWindow::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    PlatformWindow* window = (PlatformWindow*)GetWindowLongPtrA(hwnd, GWLP_USERDATA);
     if (window) {
         return window->WndProc(hwnd, msg, wParam, lParam);
     }
@@ -293,7 +294,7 @@ LRESULT CALLBACK Win32Window::StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, 
     return DefWindowProcA(hwnd, msg, wParam, lParam);
 }
 
-LRESULT CALLBACK Win32Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK PlatformWindow::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     if (m_eventCallback) {
         m_eventCallback(msg, wParam, lParam);
     }
@@ -391,26 +392,27 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
     }
 }
 
-bool Win32Window::IsKeyDown(int vk_code) const {
+bool PlatformWindow::IsKeyDown(int vk_code) const {
     if (vk_code < 0 || vk_code >= 256) return false;
     return m_keys[vk_code];
 }
 
-void Win32Window::GetMousePosition(int& x, int& y) const {
+void PlatformWindow::GetMousePosition(int& x, int& y) const {
     x = m_mouseX;
     y = m_mouseY;
 }
 
-bool Win32Window::IsMouseButtonDown(int button) const {
+bool PlatformWindow::IsMouseButtonDown(int button) const {
     if (button < 0 || button >= 3) return false;
     return m_mouseButtons[button];
 }
 
-float Win32Window::GetMouseWheelDelta() const {
+float PlatformWindow::GetMouseWheelDelta() const {
     return m_mouseDelta;
 }
 
-void Win32Window::ResetMouseWheelDelta()
+void PlatformWindow::ResetMouseWheelDelta()
 {
     m_mouseDelta = 0.0f;
 }
+#endif // _WIN32

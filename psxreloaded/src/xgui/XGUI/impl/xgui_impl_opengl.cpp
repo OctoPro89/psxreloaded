@@ -7,7 +7,11 @@
 
 #ifdef XGUI_IMPL_OPENGL
 
+#ifdef __EMSCRIPTEN__
+#include <GLES3/gl3.h>
+#else
 #include "../../../platform/gl_loader.h"
+#endif // __EMSCRIPTEN
 #include "../../Filesystem.h"
 
 namespace
@@ -96,8 +100,14 @@ namespace xgui
 
                 glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-                const char* vertexShaderSource = Filesystem::readFile("sdf_box.vert.glsl", NULL);
-                const char* fragmentShaderSource = Filesystem::readFile("sdf_box.frag.glsl", NULL);
+#ifdef __EMSCRIPTEN__
+#define SHADER_BASE_DIR "shaders/gles3/"
+#else
+#define SHADER_BASE_DIR "shaders/gl_desktop/"
+#endif // __EMSCRIPTEN__
+
+                const char* vertexShaderSource = Filesystem::readFile(SHADER_BASE_DIR "sdf_box.vert.glsl", NULL);
+                const char* fragmentShaderSource = Filesystem::readFile(SHADER_BASE_DIR "sdf_box.frag.glsl", NULL);
 
                 if (!vertexShaderSource || !fragmentShaderSource) { return false; }
 
@@ -106,8 +116,8 @@ namespace xgui
                 free((void*)vertexShaderSource);
                 free((void*)fragmentShaderSource);
 
-                vertexShaderSource = Filesystem::readFile("sdf_text.vert.glsl", NULL);
-                fragmentShaderSource = Filesystem::readFile("sdf_text.frag.glsl", NULL);
+                vertexShaderSource = Filesystem::readFile(SHADER_BASE_DIR "sdf_text.vert.glsl", NULL);
+                fragmentShaderSource = Filesystem::readFile(SHADER_BASE_DIR "sdf_text.frag.glsl", NULL);
 
                 if (!vertexShaderSource || !fragmentShaderSource) { return false; }
 
@@ -116,8 +126,8 @@ namespace xgui
                 free((void*)vertexShaderSource);
                 free((void*)fragmentShaderSource);
 
-                vertexShaderSource = Filesystem::readFile("primitive.vert.glsl", NULL);
-                fragmentShaderSource = Filesystem::readFile("primitive.frag.glsl", NULL);
+                vertexShaderSource = Filesystem::readFile(SHADER_BASE_DIR "primitive.vert.glsl", NULL);
+                fragmentShaderSource = Filesystem::readFile(SHADER_BASE_DIR "primitive.frag.glsl", NULL);
 
                 if (!vertexShaderSource || !fragmentShaderSource) { return false; }
 
@@ -126,8 +136,8 @@ namespace xgui
                 free((void*)vertexShaderSource);
                 free((void*)fragmentShaderSource);
 
-                vertexShaderSource = Filesystem::readFile("image.vert.glsl", NULL);
-                fragmentShaderSource = Filesystem::readFile("image.frag.glsl", NULL);
+                vertexShaderSource = Filesystem::readFile(SHADER_BASE_DIR "image.vert.glsl", NULL);
+                fragmentShaderSource = Filesystem::readFile(SHADER_BASE_DIR "image.frag.glsl", NULL);
 
                 if (!vertexShaderSource || !fragmentShaderSource) { return false; }
 

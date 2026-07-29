@@ -6,7 +6,7 @@
 #include "core/hp_assert.h"
 #include "core/Helpers.h" // HP_UNUSED
 
-#include <platform/platform.h>
+#include <platform/platform_audio.h>
 
 // TODO: remove and just use platform layer
 static int s_bufferSizeInSampleFrames;

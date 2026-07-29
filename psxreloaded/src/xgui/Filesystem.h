@@ -11,8 +11,15 @@ public:
     // On failure, returns nullptr and outSize is 0.
     static char* readFile(const char* filename, size_t* outSize) {
         outSize = 0;
+#ifdef _WIN32
         FILE* file = NULL;
         ::fopen_s(&file, filename, "rb");
+#else
+        FILE* file = ::fopen(filename, "rb");
+    #ifdef __EMSCRIPTEN__
+        printf("[Filesystem::readFile]: Reading file '%s'\n", filename);
+    #endif // __EMSCRIPTEN
+#endif // _WIN32
         if (!file) return nullptr;
 
         // Seek to end to get size
@@ -50,8 +57,12 @@ public:
     // Writes the buffer to the specified file.
     // Returns true on success, false on failure.
     static bool writeFile(const char* filename, const char* data, size_t size) {
+#ifdef _WIN32
         FILE* file = NULL;
         ::fopen_s(&file, filename, "wb");
+#else
+        FILE* file = ::fopen(filename, "wb");
+#endif // _WIN32
         if (!file) return false;
 
         size_t written = std::fwrite(data, 1, size, file);

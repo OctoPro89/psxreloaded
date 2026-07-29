@@ -20,7 +20,7 @@
 #include "core/StringHelpers.h"
 #include "core/MathsHelpers.h"
 
-#include <platform/platform.h>
+#include <platform/platform_audio.h>
 #include <platform/AudioResampler.h>
 
 #include <string.h> // memset
@@ -185,7 +185,11 @@ bool Host::Init(bool initAudio, const char* biosPath)
 	s_bus.Reset();
 
 	if (!biosPath || !biosPath[0])
-		biosPath = "bios/SCPH1001.bin";
+#ifdef __EMSCRIPTEN__
+		biosPath = "SCPH1001.BIN";
+#else
+		biosPath = "bios/SCPH1001.BIN";
+#endif // __EMSCRIPTEN__
 
 	if (!s_bus.GetBIOS().Load(biosPath))
 	{

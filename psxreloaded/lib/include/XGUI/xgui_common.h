@@ -1,8 +1,10 @@
 #ifndef XGUI_COMMON_H
 #define XGUI_COMMON_H
 
+#ifdef _WIN32
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
+#endif // _WIN32
 
 #include <cstdint>
 

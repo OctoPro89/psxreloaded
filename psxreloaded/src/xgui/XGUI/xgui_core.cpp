@@ -120,7 +120,11 @@ namespace xgui
 #endif // XGUI_IMPL_OPENGL
 
             // could use c:\\Windows\\Fonts\\segoeui.ttf on windows as a default
+#ifdef __EMSCRIPTEN__
+            return font::loadFontSDF("CascadiaCode-Medium.ttf", s_context->text_size, &s_context->font_texture, &s_context->glyphs[0]);
+#elif _WIN32
             return font::loadFontSDF("C:/Users/vince/Downloads/Cascadia_Code/static/CascadiaCode-Medium.ttf", s_context->text_size, &s_context->font_texture, &s_context->glyphs[0]);
+#endif // __EMSCRIPTEN__
         }
 
         return false;
@@ -1361,7 +1365,31 @@ namespace xgui
 
             return nullptr;
         }
-#endif 
+#endif
+
+        // TODO:
+#ifdef __EMSCRIPTEN__
+
+        std::string xgui::internal::getClipboardText()
+        {
+            return std::string();
+        }
+
+        void setClipboardText(const std::string& text)
+        {
+
+        }
+
+        char* openFileDialog(const char* title, const char* filter)
+        {
+            return NULL;
+        }
+
+        char* saveFileDialog(const char* title, const char* filter, const char* defaultExtension)
+        {
+            return nullptr;
+        }
+#endif // __EMSCRIPTEN__
 
         u32 hashString(const char* str)
         {

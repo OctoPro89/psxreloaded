@@ -1,9 +1,12 @@
 #include "Texture.h"
 #include "Renderer.h"
 #include "core/hp_assert.h"
-#include <platform/gl_loader.h>
 
-// TODO
+#ifdef __EMSCRIPTEN__
+#include <GLES3/gl3.h>
+#else
+#include <platform/gl_loader.h>
+#endif // __EMSCRIPTEN__
 
 Texture::Texture(unsigned int width, unsigned int height, const char* name, bool vramTexture)
 	: m_width(width)
@@ -21,7 +24,7 @@ Texture::Texture(unsigned int width, unsigned int height, const char* name, bool
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, vramTexture ? GL_R16UI : GL_RGBA8, width, height, 0, vramTexture ? GL_RED_INTEGER : GL_RGBA, vramTexture ?  GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, vramTexture ? GL_R16UI : GL_RGBA8, width, height, 0, vramTexture ? GL_RED_INTEGER : GL_RGBA, vramTexture ?  GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE, (void*)0);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

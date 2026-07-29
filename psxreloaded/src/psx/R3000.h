@@ -33,6 +33,8 @@ Note that the PlayStation CPU does not have floating point coprocessor.
 #include "core/Types.h"
 
 #ifdef EXPERIMENTAL_DYNAREC
+#include <dynarec/BlockCache.h>
+#include <dynarec/CodeBuffer.h>
 namespace dynarec { class Emitter; class Compiler; }
 #endif // EXPERIMENTAL_DYNAREC
 
@@ -123,6 +125,8 @@ public:
 	friend class dynarec::Compiler;
 	friend class dynarec::Emitter;
 	bool m_exceptionRaised = false;
+	dynarec::BlockCache m_blockCache;
+	dynarec::CodeBuffer m_codeBuffer;
 #endif // EXPERIMENTAL_DYNAREC
 private:
 

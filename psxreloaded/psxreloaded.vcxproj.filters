@@ -177,10 +177,10 @@
     <ClInclude Include="lib\include\XGUI\xtruetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\platform\Win32Window.h">
+    <ClInclude Include="src\platform\PlatformWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\platform\platform.h">
+    <ClInclude Include="src\platform\platform_audio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\platform\AudioResampler.h">
@@ -202,6 +202,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Experimental.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dynarec\BlockCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dynarec\BlockExecutor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dynarec\CodeBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -332,13 +341,13 @@
     <ClCompile Include="src\xgui\XGUI\xgui_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\platform\Win32Window.cpp">
+    <ClCompile Include="src\platform\Win32PlatformWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\xgui\XGUI\xgui_colors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\platform\platform.c">
+    <ClCompile Include="src\platform\platform_audio.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\platform\AudioResampler.cpp">
@@ -354,6 +363,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\renderering\HardwareRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dynarec\BlockCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dynarec\CodeBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\EmscriptenPlatformWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

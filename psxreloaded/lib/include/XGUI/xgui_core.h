@@ -123,7 +123,7 @@ namespace xgui
                 }
 
                 // this shouldn't happen
-                __debugbreak();
+                //__debugbreak();
                 return false;
             }
 
@@ -134,7 +134,8 @@ namespace xgui
                     if (keys[i] == key) { values[i] = value; return; }
                 }
 
-                __debugbreak();
+                // this shouldn't happen
+                //__debugbreak();
 
             }
         } projection_updated_map;

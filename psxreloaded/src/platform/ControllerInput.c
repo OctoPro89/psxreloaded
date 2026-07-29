@@ -1,6 +1,7 @@
 #include "ControllerInput.h"
+#include <string.h>
 
-extern const bool* m_keys = NULL;
+extern const bool* m_keys;
 
 static InputState gControllers[INPUT_MAX_CONTROLLERS];
 
@@ -126,3 +127,36 @@ void controller_input_set_rumble(int controller, float left, float right)
 }
 
 #endif // _WIN32
+
+// TODO:
+#ifdef __EMSCRIPTEN__
+bool controller_input_init(void)
+{
+    memset(gControllers, 0, sizeof(gControllers));
+
+    return true;
+}
+
+void controller_input_update()
+{
+
+}
+
+const InputState* controller_input_get_controller(int index)
+{
+    if (index < 0 || index >= INPUT_MAX_CONTROLLERS)
+        return (const InputState*)0;
+
+    return &gControllers[index];
+}
+
+void controller_input_shutdown()
+{
+
+}
+
+void controller_input_set_rumble(int controller, float left, float right)
+{
+
+}
+#endif // __EMSCRIPTEN__

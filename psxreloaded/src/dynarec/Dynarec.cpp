@@ -1,6 +1,7 @@
 #include "Dynarec.h"
 #include <Host.h>
 #include <cstddef>
+#include <psx/R3000.h>
 
 #ifdef EXPERIMENTAL_DYNAREC
 

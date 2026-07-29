@@ -48,6 +48,10 @@ void LogMsgV(int logLevel, FILE* pStream, const char* format, va_list argList)
 	vfprintf(pStream, format, argcopy); // print to stdout
 	va_end(argcopy); 
 
+#ifdef __EMSCRIPTEN__
+	fflush(pStream);
+#endif // __EMSCRIPTEN__
+
 	if (s_pLogCallback)
 	{
 		va_copy(argcopy, argList);
@@ -93,7 +97,11 @@ void LogLevel(int logLevel, const char* format, ...)
 		return;
 
 	// LOG_ERROR and LOG_WARN go to stderr. LOG_LEVEL_INFO, LOG_LEVEL_DEBUG and LOG_LEVEL_TRACE go to stdout
+#ifdef __EMSCRIPTEN__
+	FILE* pStream = stdout;
+#else
 	FILE* pStream = logLevel < LOG_LEVEL_INFO ? stderr : stdout;
+#endif // __EMSCRIPTEN__
 
 	va_list argList;
 	va_start(argList, format);

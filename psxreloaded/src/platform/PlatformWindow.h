@@ -1,31 +1,46 @@
 #pragma once
 
+#ifdef _WIN32
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
 #include "gl_loader.h"
+#endif
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten/html5.h>
+#include <emscripten/emscripten.h>
+#endif
 
 // Class to handle opening, closing, getting input, and other operations regarding windowing from win32
-class Win32Window {
+class PlatformWindow {
 public:
-    typedef void (*EventCallbackFn)(UINT msg, WPARAM wParam, LPARAM lParam);
-
-    Win32Window() {}; // Global constructor
-    Win32Window(const char* title, int width, int height); // Initialize the window
-    ~Win32Window(); // Destroy the window
+    PlatformWindow() {}; // Global constructor
+    PlatformWindow(const char* title, int width, int height); // Initialize the window
+    ~PlatformWindow(); // Destroy the window
 
     void Show(); // Shows the window
     void PollEvents(); // Polls for events like input with the keyboard and mouse
     bool ShouldClose() const; // Checks if the window is supposed to close
     void NotifyClose();
 
+#ifdef _WIN32
     HWND GetHandle() const { return m_hwnd; } // Gets the raw HWND handle
     HDC GetDeviceContext() const { return m_hdc; }
 
+    typedef void (*EventCallbackFn)(UINT msg, WPARAM wParam, LPARAM lParam);
     void SetEventCallback(EventCallbackFn callback) { m_eventCallback = callback; } // Sets the window's procedure
+#elif __EMSCRIPTEN__
+    void SetMainLoop(void(*main_loop_func)(void), int fps, bool simulate_infinite_loop);
+    static EM_BOOL MouseMoveCallback(int eventType, const EmscriptenMouseEvent* e, void* userData);
+    static EM_BOOL MouseButtonCallback(int eventType, const EmscriptenMouseEvent* e, void* userData);
+    static EM_BOOL MouseWheelCallback(int eventType, const EmscriptenWheelEvent* e, void* userData);
+    static EM_BOOL ResizeCallback(int eventType, const EmscriptenUiEvent* e, void* userData);
+    static EM_BOOL FullscreenResizeCallback(int eventType, const EmscriptenFullscreenChangeEvent* fullscreenChangeEvent __attribute__((nonnull)), void* userData);
+        static EM_BOOL KeyCallback(int eventType, const EmscriptenKeyboardEvent* e, void* userData);
+#endif // _WIN32
 
-    bool SetupGLContext(); // Sets up OpenGL with a core 4.6 context
+    bool SetupGLContext(); // Sets up OpenGL with a core 4.6 context (WINDOWS) Sets up WebGL2 (EMSCRIPTEN)
     void SwapDC() const;
 
     bool IsKeyDown(int vk_code) const;
@@ -53,13 +68,17 @@ public:
     void SetMouseButtonCallback(MouseButtonCallbackFunc cb) { m_mouseButtonCallback = cb; }
     void SetWindowResizeAndRenderDuringResizeCallback(WindowResizeCallbackFunc cb) { m_windowResizeCallback = cb; }
 private:
+#ifdef _WIN32
     HWND m_hwnd;
     HDC  m_hdc;
     HGLRC m_glrc;
     HINSTANCE m_hInstance;
     const char* m_className;
-    bool m_shouldClose;
     EventCallbackFn m_eventCallback;
+#elif __EMSCRIPTEN__
+    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_glContext;
+#endif // _WIN32
+    bool m_shouldClose;
 
     bool m_keys[256] = { false };
     bool m_mouseButtons[3] = { false };
@@ -77,11 +96,13 @@ private:
     void RegisterWindowClass();
     void CreateAppWindow(const char* title, int width, int height);
 
+#ifdef _WIN32
     static LRESULT CALLBACK StaticWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
     LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif // _WIN32
 };
 
-namespace Win32Input {
+namespace PlatformInput {
     // Keyboard keys (common and extended)
     enum Key {
         None = 0,
@@ -147,6 +168,7 @@ namespace Win32Input {
         Y = 0x59,
         Z = 0x5A,
 
+#ifndef __EMSCRIPTEN__
         LeftWin = 0x5B,
         RightWin = 0x5C,
         Apps = 0x5D,
@@ -168,6 +190,7 @@ namespace Win32Input {
         Subtract = 0x6D,
         Decimal = 0x6E,
         Divide = 0x6F,
+#endif // __EMSCRIPTEN__
 
         F1 = 0x70,
         F2 = 0x71,
@@ -181,6 +204,7 @@ namespace Win32Input {
         F10 = 0x79,
         F11 = 0x7A,
         F12 = 0x7B,
+#ifndef __EMSCRIPTEN__
         F13 = 0x7C,
         F14 = 0x7D,
         F15 = 0x7E,
@@ -196,6 +220,7 @@ namespace Win32Input {
 
         NumLock = 0x90,
         ScrollLock = 0x91,
+#endif // __EMSCRIPTEN__
 
         LeftShift = 0xA0,
         RightShift = 0xA1,

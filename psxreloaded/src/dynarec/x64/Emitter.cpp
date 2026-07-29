@@ -9,7 +9,7 @@
 
 namespace dynarec
 {
-    extern "C" void ExecuteFallback(CpuState* cpu, u32 raw, u32 pc);
+    //extern "C" void ExecuteFallback(CpuState* cpu, u32 raw, u32 pc);
 
     void dynarec::Emitter::EmitBlock(const CompiledBlock& block)
     {
@@ -38,13 +38,29 @@ namespace dynarec
         if (ins.rt == 0)
             return; // register zero stays zero
 
+        /*
         u32 value = (u32)(u16)ins.imm << 16;
 
         // Example if you were writing directly into memory-backed CPU state:
         m_cpu.m_r[ins.rt] = value;
+        */
 
-        // x64 version:
-        // mov dword ptr [cpu + offsetof(CpuState, r) + ins.rt*4], value;
+        uint32_t offset = offsetof(R3000, m_r) + ins.rt * 4;
+
+        uint32_t value = (uint16_t)ins.imm << 16;
+
+        m_buffer.Emit8(0xC7);
+        m_buffer.Emit8(0x81);
+
+        m_buffer.Emit32(offset);
+        m_buffer.Emit32(value);
+
+        m_buffer.Emit8(0xC3); // ret
+
+        using BlockFn = void(*)(R3000*);
+
+        auto fn = reinterpret_cast<BlockFn>(m_buffer.GetCurrent());
+        fn(&m_cpu);
     }
 
     void dynarec::Emitter::EmitOri(const DecodedInstruction& ins)
@@ -131,7 +147,7 @@ namespace dynarec
         if (live != ins.raw)
         {
             printf("Self-modifying code!\n");
-            exit(1);
+            //exit(1);
         }
 #endif
 

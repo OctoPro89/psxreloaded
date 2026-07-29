@@ -60,6 +60,10 @@ void R3000::Reset()
 	m_delayedLoadNext = {};
 
 	m_gte.Reset();
+
+#ifdef EXPERIMENTAL_DYNAREC
+	m_blockCache.Clear();
+#endif // EXPERIMENTAL_DYNAREC
 }
 
 void R3000::ExecuteInstruction()
@@ -722,6 +726,7 @@ bool R3000::ExecuteOp(u32 opcode)
 	return !m_exceptionRaised;
 }
 
+#if 0
 void R3000::StepDynarec()
 {
 	dynarec::Compiler compiler(*this);
@@ -731,6 +736,24 @@ void R3000::StepDynarec()
 
 	dynarec::Emitter emitter = dynarec::Emitter(*this);
 	emitter.EmitBlock(block);
+}
+#endif
+
+void R3000::StepDynarec()
+{
+	dynarec::Compiler compiler(*this);
+	dynarec::Emitter emitter = dynarec::Emitter(*this, m_codeBuffer);
+	dynarec::CompiledBlock* block = m_blockCache.Lookup(m_fetchPC);
+
+	if (!block)
+	{
+		auto compiled = compiler.CompileBlock(m_fetchPC);
+
+		block = m_blockCache.Insert(std::move(compiled));
+		LOG_INFO("Compiled block fetchPC=%08X\n", m_fetchPC);
+	}
+
+	emitter.EmitBlock(*block);
 }
 
 #endif // EXPERIMENTAL_DYNAREC

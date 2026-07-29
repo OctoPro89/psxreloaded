@@ -3,7 +3,11 @@
 #define XTT_IMPLEMENTATION
 #include <XGUI/xtruetype.h>
 
+#ifdef __EMSCRIPTEN__
+#include <GLES3/gl3.h>
+#else
 #include "../../platform/gl_loader.h"
+#endif // __EMSCRIPTEN__
 
 #include <cstdlib>
 #include <cstring>
@@ -45,7 +49,13 @@ namespace xgui
             // Upload to OpenGL
             glGenTextures(1, outTexture);
             glBindTexture(GL_TEXTURE_2D, *outTexture);
+
+            // GLES3 needs a sized format like GL_R8
+#ifdef __EMSCRIPTEN__
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, atlasWidth, atlasHeight, 0, GL_RED, GL_UNSIGNED_BYTE, atlasPixels);
+#else
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, atlasWidth, atlasHeight, 0, GL_RED, GL_UNSIGNED_BYTE, atlasPixels);
+#endif // __EMSCRIPTEN__
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

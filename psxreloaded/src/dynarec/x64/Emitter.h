@@ -5,22 +5,17 @@
 #ifdef EXPERIMENTAL_DYNAREC
 
 #include <dynarec/Dynarec.h>
+#include <dynarec/CodeBuffer.h>
 #include <psx/R3000.h>
 
 namespace dynarec
 {
-    typedef struct
-    {
-        u32 r[32];
-        u32 pc;
-    } CpuState;
-
     class Emitter
     {
     public:
         Emitter() = default;
-        explicit Emitter(R3000& r3000)
-            : m_cpu(r3000)
+        explicit Emitter(R3000& r3000, CodeBuffer& buffer)
+            : m_cpu(r3000), m_buffer(buffer)
         {}
 
         void EmitBlock(const CompiledBlock& block);
@@ -35,6 +30,7 @@ namespace dynarec
 
     private:
         R3000& m_cpu;
+        CodeBuffer& m_buffer;
         // X64Writer* m_writer = nullptr;
     };
 }

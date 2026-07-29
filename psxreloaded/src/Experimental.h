@@ -1,4 +1,4 @@
 #pragma once
 
 // #define EXPERIMENTAL_HW_RENDERER
-#define EXPERIMENTAL_DYNAREC
+// #define EXPERIMENTAL_DYNAREC

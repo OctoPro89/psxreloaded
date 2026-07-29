@@ -1,19 +1,4 @@
 #include "GUI/MenuBar.h"
-#include "GUI/InsertDiscDialog.h"
-#include "GUI/MemoryCardFileDialog.h"
-#include "GUI/SideloadDialog.h"
-#include "GUI/SnapshotDialog.h"
-#include "GUI/CDROMWindow.h"
-#include "GUI/CDWindow.h"
-#include "GUI/CPUWindow.h"
-#include "GUI/DMAWindow.h"
-#include "GUI/GPUWindow.h"
-#include "GUI/HostWindow.h"
-#include "GUI/MemoryCardWindow.h"
-#include "GUI/SPUWindow.h"
-#include "GUI/ImGuiDemoWindow.h"
-#include "GUI/ImGuiWrap.h"
-
 #include "Host.h"
 #include "Renderer.h"
 
@@ -27,8 +12,13 @@
 #include "core/Helpers.h" // HP_UNUSED
 
 #include "platform/ControllerInput.h"
-#include "platform/Win32Window.h"
-#include "platform/gl_loader.h"
+#include "platform/PlatformWindow.h"
+
+#ifdef __EMSCRIPTEN__
+#include <GLES3/gl3.h>
+#else
+#include <platform/gl_loader.h>
+#endif // __EMSCRIPTEN__
 
 #include <XGUI/xgui.h>
 
@@ -37,7 +27,6 @@
 #include <mutex>
 
 #include <dynarec/Dynarec.h>
-
 #include <renderering/HardwareRenderer.h>
 
 struct CommandLineArgs
@@ -102,12 +91,13 @@ bool right = false;
 bool backspace = false;
 bool del = false;
 
-extern const bool* m_keys = NULL;
+const bool* m_keys;
 double frameTimeSeconds = 0.0;
 int uiControllerMode;
 
-Win32Window* window{};
+PlatformWindow* window{};
 
+#ifdef _WIN32
 wchar_t TranslateKeyToChar(UINT vkCode)
 {
 	BYTE keyboardState[256];
@@ -123,9 +113,11 @@ wchar_t TranslateKeyToChar(UINT vkCode)
 		return buff[0];
 	return 0;
 }
+#endif // _WIN32
 
 void keyboardCallback(int vkCode, bool isPressed)
 {
+#ifdef _WIN32
 	bool ctrl = m_keys[VK_CONTROL] || m_keys[VK_LCONTROL] || m_keys[VK_RCONTROL];
 	bool shft = m_keys[VK_SHIFT] || m_keys[VK_LSHIFT] || m_keys[VK_RSHIFT];
 
@@ -146,6 +138,7 @@ void keyboardCallback(int vkCode, bool isPressed)
 		char c = (char)ch;
 		state_char = c;
 	}
+#endif // _WIN32
 }
 
 xgui::InputState pollEventsAndGetKeyboard()
@@ -385,11 +378,11 @@ static void handleInput()
 	//hostController0.buttonSelect = m_keys[VK_SHIFT];
 	//hostController0.buttonL3 = ;
 	//hostController0.buttonR3 = Input::GetKeyState(SDL_SCANCODE_RCTRL) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
-	hostController0.buttonStart = m_keys[VK_RETURN];
-	hostController0.joypadUp = m_keys['W'];
-	hostController0.joypadRight = m_keys['D'];
-	hostController0.joypadDown = m_keys['S'];
-	hostController0.joypadLeft = m_keys['A'];
+	hostController0.buttonStart = window->IsKeyDown(PlatformInput::Enter);
+	hostController0.joypadUp = window->IsKeyDown(PlatformInput::W);
+	hostController0.joypadRight = window->IsKeyDown(PlatformInput::D);
+	hostController0.joypadDown = window->IsKeyDown(PlatformInput::S);
+	hostController0.joypadLeft = window->IsKeyDown(PlatformInput::A);
 	//if (s_hostLeftAnalogueStickToDpadInDigitalMode[0] && Host::GetBus().GetSIO().GetPort(0).GetController().GetType() == Controller::Type::Digital)
 	//{
 	//	hostController0.joypadUp |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) < -0.5f;;
@@ -397,14 +390,14 @@ static void handleInput()
 	//	hostController0.joypadDown |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) > 0.5f;
 	//	hostController0.joypadLeft |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX) < -0.5f;
 	//}
-	hostController0.buttonL2 = m_keys['2'];
-	hostController0.buttonR2 = m_keys['9'];
-	hostController0.buttonL1 = m_keys['1'];
-	hostController0.buttonR1 = m_keys['0'];
-	hostController0.buttonNorth = m_keys[VK_UP]; // PlayStation Triangle / Nintendo Y / Xbox Y
-	hostController0.buttonEast = m_keys[VK_RIGHT];  // PlayStation Circle / Nintendo A / Xbox B
-	hostController0.buttonSouth = m_keys[VK_DOWN]; // PlayStation Cross / Nintendo B / Xbox A
-	hostController0.buttonWest = m_keys[VK_LEFT];  // PlayStation Square / Nintendo X / Xbox X
+	hostController0.buttonL2 = window->IsKeyDown(PlatformInput::Num2);
+	hostController0.buttonR2 = window->IsKeyDown(PlatformInput::Num9);
+	hostController0.buttonL1 = window->IsKeyDown(PlatformInput::Num1);
+	hostController0.buttonR1 = window->IsKeyDown(PlatformInput::Num0);
+	hostController0.buttonNorth = window->IsKeyDown(PlatformInput::UpArrow); // PlayStation Triangle / Nintendo Y / Xbox Y
+	hostController0.buttonEast = window->IsKeyDown(PlatformInput::RightArrow);  // PlayStation Circle / Nintendo A / Xbox B
+	hostController0.buttonSouth = window->IsKeyDown(PlatformInput::DownArrow); // PlayStation Cross / Nintendo B / Xbox A
+	hostController0.buttonWest = window->IsKeyDown(PlatformInput::LeftArrow);  // PlayStation Square / Nintendo X / Xbox X
 	//hostController0.m_leftStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX);
 	//hostController0.m_leftStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY);
 	//hostController0.m_rightStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTX);
@@ -670,29 +663,53 @@ int main(int argc, char** argv)
 		windowHeight = commandLineArgs.windowHeight;
 
 #ifdef DEBUG
-	const char* title = "PSXReloaded" " | Debug";
+	#ifdef __EMSCRIPTEN__
+		const char* title = "PSXReloaded [WebAssembly]" " | Nightly" " | Debug";
+	#else
+		const char* title = "PSXReloaded" " | Nightly" " | Debug";
+	#endif // __EMSCRIPTEN__
 #elif RELEASE
-	const char* title = "PSXReloaded" " | Release";
+#ifdef __EMSCRIPTEN__
+	const char* title = "PSXReloaded [WebAssembly]" " | Nightly" " | Release";
+#else
+	const char* title = "PSXReloaded" " | Nightly" " | Release";
+#endif // __EMSCRIPTEN__
 #endif
 
-	window = new Win32Window(title, windowWidth, windowHeight);
+	window = new PlatformWindow(title, windowWidth, windowHeight);
 	if (!window)
 	{
+#ifdef _WIN32
 		MessageBoxA(NULL, "Failed to open window!", "", MB_OK);
+#elif __EMSCRIPTEN__
+		emscripten_run_script("alert('Failed to open window!')");
+#endif // _WIN32
 		return EXIT_FAILURE;
 	}
 
 	if (!window->SetupGLContext())
 	{
+#ifdef _WIN32
 		MessageBoxA(NULL, "Failed to initialize OpenGL", "", MB_OK);
-		return -1;
+#elif __EMSCRIPTEN__
+		emscripten_run_script("alert('Failed to initialize OpenGL!')");
+#endif // _WIN32
+		return EXIT_FAILURE;
 	}
 
 	window->Show();
 	window->SetKeyCallback(keyboardCallback);
 	window->SetWindowResizeAndRenderDuringResizeCallback(resizeCallback);
 
-	if (!Host::Init(/* audioSubSystemInitialised */ true, commandLineArgs.biosPath))
+	printf("Window created, starting application!\n");
+
+#ifdef __EMSCRIPTEN__
+	const bool audioSubSystemInitialised = false;
+#else
+	const bool audioSubSystemInitialised = true;
+#endif
+
+	if (!Host::Init(/* audioSubSystemInitialised */ audioSubSystemInitialised, commandLineArgs.biosPath))
 	{
 		LOG_ERROR("Failed to initialise host\n");
 		return EXIT_FAILURE;
@@ -737,7 +754,26 @@ int main(int argc, char** argv)
 			Sideload::EnableAmidogTestDebugOutput(Host::GetBus());
 	}
 
-	xgui::init();
+	printf("Loading virtual disc image: 'Crash Bandicoot (USA).bin'\n");
+
+	// TODO: remove
+#ifdef __EMSCRIPTEN__
+	CD& cd = Host::GetCD();
+	if (!cd.LoadFromFile("Crash Bandicoot (USA).bin"))
+	{
+		LOG_ERROR("Failed to load disc image: %s\n", commandLineArgs.discPath);
+		return EXIT_FAILURE;
+	}
+	Host::GetBus().GetCDROM().InsertDisc(cd);
+#endif // __EMSCRIPTEN__
+	printf("Loaded virtual disc image: 'Crash Bandicoot (USA).bin'\n");
+	printf("Initializing UI Framework\n");
+	if (!xgui::init())
+	{
+		printf("Failed to initialize UI Framework!\n");
+		return EXIT_FAILURE;
+	}
+	printf("Initialized UI Framework\n");
 
 	auto& ctx = xgui::Context::get();
 
@@ -791,8 +827,13 @@ int main(int argc, char** argv)
 	hw_renderer_singleton.Init();
 #endif // EXPERIMENTAL_HW_RENDERER
 
+#ifndef __EMSCRIPTEN__
 	while (!s_quit)
 	{
+#else
+	auto frame = [&]()
+	{
+#endif // __EMSCRIPTEN__
 		s_quit = window->ShouldClose();
 
 		xgui::InputState input = pollEventsAndGetKeyboard();
@@ -855,7 +896,22 @@ int main(int argc, char** argv)
 		right = false;
 		backspace = false;
 		window->ResetMouseWheelDelta();
+#ifdef __EMSCRIPTEN__
+	};
+#else
 	}
+#endif // __EMSCRIPTEN__
+
+#ifdef __EMSCRIPTEN__
+	emscripten_set_main_loop_arg(
+	[](void* arg)
+	{
+		(*static_cast<decltype(frame)*>(arg))();
+	},
+	&frame,
+	0,
+	true);
+#endif // __EMSCRIPTEN__
 
 	xgui::shutdown();
 	Host::Shutdown();

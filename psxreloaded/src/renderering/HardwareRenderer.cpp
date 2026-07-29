@@ -5,7 +5,7 @@
 
 #include "HardwareRenderer.h"
 #include <platform/gl_loader.h>
-#include <platform/platform.h>
+#include <platform/platform_audio.h>
 #include <Host.h>
 #include <psx/Bus.h>
 #include <xgui/Filesystem.h>
@@ -78,8 +78,8 @@ void HardwareRenderer::Init()
     m_sampleTex = new Texture(kVRAMTextureWidthPixels, kVRAMHeightLines, "HW_VRAM_SAMPLE", true);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    const char* vertexShaderSource = Filesystem::readFile("hardware_psx_gpu.vert.glsl", NULL);
-    const char* fragmentShaderSource = Filesystem::readFile("hardware_psx_gpu.frag.glsl", NULL);
+    const char* vertexShaderSource = Filesystem::readFile("shaders/gl_desktop/hardware_psx_gpu.vert.glsl", NULL);
+    const char* fragmentShaderSource = Filesystem::readFile("shaders/gl_desktop/hardware_psx_gpu.frag.glsl", NULL);
 
     if (!vertexShaderSource || !fragmentShaderSource) { return; }
 

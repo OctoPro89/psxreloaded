@@ -1,23 +1,16 @@
 #include "MenuBar.h"
 #include <XGUI/xgui.h>
-#include "GUI/InsertDiscDialog.h"
-#include "GUI/MemoryCardFileDialog.h"
-#include "GUI/SideloadDialog.h"
-#include "GUI/SnapshotDialog.h"
-#include "GUI/CDROMWindow.h"
-#include "GUI/CDWindow.h"
-#include "GUI/CPUWindow.h"
-#include "GUI/DMAWindow.h"
-#include "GUI/GPUWindow.h"
-#include "GUI/HostWindow.h"
-#include "GUI/MemoryCardWindow.h"
-#include "GUI/SPUWindow.h"
 #include "GUI/GuiUtils.h"
 #include "Host.h"
 #include "platform/ControllerInput.h"
-#include "platform/platform.h"
+#include "platform/platform_audio.h"
 #include "psx/Bus.h"
 #include "core/Log.h"
+
+// NOTE: DON'T be an IDIOT an use this on a non-array type!
+#ifndef _WIN32
+	#define _countof(arr) (sizeof(arr) / sizeof((arr)[0]))
+#endif // _WIN32
 
 extern double frameTimeSeconds;
 extern int uiControllerMode;
@@ -254,7 +247,7 @@ menus:
 			xgui::WindowedUILayout wlayout{};
 			wlayout.UIbegin(0.95f, 20.0f);
 
-			wlayout.UItext("PSXReloaded v1.0", 15.0f);
+			wlayout.UItext("PSXReloaded v1.0 - Nightly / Experimental", 15.0f);
 			wlayout.UItext("UI Framework - XGUI", 15.0f);
 			wlayout.UItext("Graphics Info:", 15.0f);
 			wlayout.UItext("    Graphics API: OpenGL", 15.0f);

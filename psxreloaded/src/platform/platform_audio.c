@@ -1,4 +1,4 @@
-#include "platform.h"
+#include "platform_audio.h"
 
 // TODO: clean up
 #define true 1
@@ -263,3 +263,12 @@ u32 platform_audio_get_queued_frames(void)
 }
 
 #endif // _WIN32
+
+#ifdef __EMSCRIPTEN__
+u32 platform_audio_output_sample_rate = 48000;
+u8 platform_audio_init() { return 0; }
+void platform_audio_shutdown() {}
+void platform_audio_push(const s16* samples, u32 frames) {}
+u32 platform_audio_get_queued_frames() { return 0; }
+void platform_audio_clear() {}
+#endif // __EMSCRIPTEN__

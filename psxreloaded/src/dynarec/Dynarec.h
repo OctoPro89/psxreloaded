@@ -2,7 +2,8 @@
 
 #include <core/Types.h>
 #include <vector>
-#include <psx/R3000.h>
+
+class R3000;
 
 namespace dynarec
 {
@@ -157,7 +158,8 @@ namespace dynarec
 
         std::vector<DecodedInstruction> instructions;
 
-        void* nativeCode = nullptr;
+        uint8_t* nativeCode = nullptr;
+        size_t nativeSize = 0;
     };
 
     class Compiler
