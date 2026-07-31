@@ -12,8 +12,15 @@
 	#define _countof(arr) (sizeof(arr) / sizeof((arr)[0]))
 #endif // _WIN32
 
+#ifdef __EMSCRIPTEN__
+#include <platform/EmscriptenHelpers.h>
+extern void applicationRequestFullscreen();
+#endif // __EMSCRIPTEN__
+
+// TODO: cleanup
 extern double frameTimeSeconds;
 extern int uiControllerMode;
+extern MenuBar::FrameStats stats;
 static bool prevUiUsingController;
 
 bool MenuBar::Update(bool s_mainMenuBarVisible)
@@ -200,6 +207,7 @@ menus:
 				{
 				case 0:
 				{
+#ifndef __EMSCRIPTEN__
 					if (const char* fp = xgui::filePicker("Insert disc...", "Raw Binary (*.bin)\0*.bin\0Cue Sheets (*.cue)\0*.cue\0All Files\0*.*\0\0"))
 					{
 						CD& cd = Host::GetCD();
@@ -214,6 +222,9 @@ menus:
 							bus.GetCDROM().InsertDisc(cd);
 						}
 					}
+#else
+					frontendOpenROMPicker();
+#endif // __EMSCRIPTEN__
 					break;
 				}
 				case 1:
@@ -253,15 +264,22 @@ menus:
 			wlayout.UItext("    Graphics API: OpenGL", 15.0f);
 			wlayout.UItext("    Renderer: emulated PSX rasterizer", 15.0f);
 			char buf[100];
-			snprintf(buf, 100, "    Frame time (ms): %.2f", (float)frameTimeSeconds * 1000);
+			snprintf(buf, 100, "    Frame time (ms): %.2f", (float)stats.frameTimeMS);
+			wlayout.UItext(buf, 15.0f);
+			snprintf(buf, 100, "    Current FPS: %.1f", (float)stats.fps);
 			wlayout.UItext(buf, 15.0f);
 			wlayout.UItext("Audio Info:", 15.0f);
+#ifdef _WIN32
 			wlayout.UItext("    Audio backend: WASAPI", 15.0f);
 			snprintf(buf, 100, "    Current host sampling rate: %d kHz", platform_audio_output_sample_rate);
 			wlayout.UItext(buf, 15.0f);
 			snprintf(buf, 100, "    Resampling method: Static %d kHz (host) to 44100 kHz (PSX)", platform_audio_output_sample_rate);
 			wlayout.UItext(buf, 15.0f);
+#elif __EMSCRIPTEN__
+			wlayout.UItext("    Audio currently not available in WebAssembly builds", 15.0f);
+#endif // _WIN32
 			wlayout.UItext("Virtual controller port 1 info:", 15.0f);
+#ifdef _WIN32
 			wlayout.UItext("    Controller API: XInput", 15.0f);
 			wlayout.UItext(controller0_state->connected ? "    Connected: true" : "   Connected: false", 15.0f);
 			snprintf(buf, 100, "    Cross: %s | Circle: %s",
@@ -309,6 +327,21 @@ menus:
 				Host::s_playTestTone = !Host::s_playTestTone;
 			}
 
+#elif __EMSCRIPTEN__
+			wlayout.UItext("    Controllers not currently supported in WebAssembly builds,", 15.0f);
+			wlayout.UItext("    using keyboard", 15.0f);
+			wlayout.UItext("WebAssembly build info:", 15.0f);
+			wlayout.UItext("    Compiled with wasmcompile.bat", 15.0f);
+			wlayout.UItext("    www.github.com/OctoPro89/psxreloaded/psxreloaded/wasmcompile.bat", 15.0f);
+			wlayout.UItext("    Compiler Optimization: max", 15.0f);
+			wlayout.UItext("    Release / Debug Build: Release", 15.0f);
+			wlayout.UItext("    Shaders: GLES3 preloaded into psxreloaded.data", 15.0f);
+			wlayout.UItext("Compile command:", 15.0f);
+			wlayout.UItext("    em++ [SOURCES] [INCLUDE_DIR] -std=c++17 -O3 -sUSE_WEBGL2=1", 15.0f);
+			wlayout.UItext("    -sFULL_ES3=1 -sALLOW_MEMORY_GROWTH=1 [PRELOADED_FILES]", 15.0f);
+			wlayout.UItext("    -DRELEASE --shell-file wasm\\shell.html -o wasm\\psxreloaded.html", 15.0f);
+#endif // _WIN32
+
 			if (wlayout.UIbutton("Close", 15.0f))
 			{
 				infoMenuOpen = false;
@@ -323,6 +356,7 @@ menus:
 			static xgui::MenuItem menu[] = {
 				{ "Pause" },
 				{ "Reset Emulator" },
+				{ "Fullscreen" },
 			};
 
 			int selected = xgui::menu(menu, _countof(menu), emulator_menu_x_off, ctx.current_menu_bar.height);
@@ -338,6 +372,12 @@ menus:
 					case 1:
 						Host::ResetEmulator();
 						break;
+					// TODO: other platforms
+#ifdef __EMSCRIPTEN__
+					case 2:
+						applicationRequestFullscreen();
+						break;
+#endif // __EMSCRIPTEN__
 					default:
 						break;
 				}
@@ -424,6 +464,7 @@ menus:
 					switch (child)
 					{
 					case 0:
+#ifndef __EMSCRIPTEN__
 						if (const char* fp = xgui::filePicker("Load memory card...", "PSX Memory Cards (*.mcd, *.mc, *.mcr)\0*.mcd;*.mc;*.mcr\0Cue Sheets\0*.cue\0All Files\0*.*\0\0"))
 						{
 							if (card.LoadFromFile(fp))
@@ -436,8 +477,12 @@ menus:
 								failedPopupOpen = true;
 							}
 						}
+#else
+						frontendOpenMemoryCardPicker(0);
+#endif // __EMSCRIPTEN__
 						break;
 					case 1:
+#ifndef __EMSCRIPTEN__
 						if (const char* fp = xgui::saveFilePicker("Save memory card...", "PSX Memory Cards (*.mcd, *.mc, *.mcr)\0*.mcd;*.mc;*.mcr\0Cue Sheets\0*.cue\0All Files\0*.*\0\0", "mcd"))
 						{
 							if (!card.SaveToFile(fp))
@@ -446,6 +491,9 @@ menus:
 								failedPopupOpen = true;
 							}
 						}
+#else
+backendDownloadMemoryCard(0, "memcard0.mcd");
+#endif // __EMSCRIPTEN__
 						break;
 					case 2:
 						port.SetMemoryCardInserted(true);
@@ -465,6 +513,7 @@ menus:
 					switch (child)
 					{
 					case 0:
+#ifndef __EMSCRIPTEN__
 						if (const char* fp = xgui::filePicker("Load memory card...", "PSX Memory Cards (*.mcd, *.mc, *.mcr)\0*.mcd;*.mc;*.mcr\0Cue Sheets\0*.cue\0All Files\0*.*\0\0"))
 						{
 							if (card.LoadFromFile(fp))
@@ -477,8 +526,12 @@ menus:
 								failedPopupOpen = true;
 							}
 						}
+#else
+						frontendOpenMemoryCardPicker(1);
+#endif // __EMSCRIPTEN__
 						break;
 					case 1:
+#ifndef __EMSCRIPTEN__
 						if (const char* fp = xgui::saveFilePicker("Save memory card...", "PSX Memory Cards (*.mcd, *.mc, *.mcr)\0*.mcd;*.mc;*.mcr\0Cue Sheets\0*.cue\0All Files\0*.*\0\0", "mcd"))
 						{
 							if (!card.SaveToFile(fp))
@@ -487,6 +540,9 @@ menus:
 								failedPopupOpen = true;
 							}
 						}
+#else
+						backendDownloadMemoryCard(1, "memcard1.mcd");
+#endif // __EMSCRIPTEN__
 						break;
 					case 2:
 						port.SetMemoryCardInserted(true);

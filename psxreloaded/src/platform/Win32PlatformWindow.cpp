@@ -205,8 +205,7 @@ bool PlatformWindow::SetupGLContext() {
     typedef HGLRC(WINAPI* wglCreateContextAttribsARBProc)(HDC, HGLRC, const int*);
     typedef BOOL(WINAPI* wglChoosePixelFormatARBProc)(HDC, const int*, const FLOAT*, UINT, int*, UINT*);
 
-    wglCreateContextAttribsARBProc wglCreateContextAttribsARB =
-        (wglCreateContextAttribsARBProc)wglGetProcAddress("wglCreateContextAttribsARB");
+    wglCreateContextAttribsARBProc wglCreateContextAttribsARB = (wglCreateContextAttribsARBProc)wglGetProcAddress("wglCreateContextAttribsARB");
 
     if (!wglCreateContextAttribsARB) {
         MessageBoxA(0, "wglCreateContextAttribsARB not available", "Error", MB_OK | MB_ICONERROR);

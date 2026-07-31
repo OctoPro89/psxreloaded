@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>PSXReloaded | Nightly | WebAssembly</title>
+
+<style>
+:root {
+    --bg: #0b1020;
+    --glass: rgba(255,255,255,.08);
+    --glass-border: rgba(255,255,255,.12);
+    --text: #ffffff;
+    --muted: rgba(255,255,255,.72);
+    --accent1: #60a5fa;
+    --accent2: #3b82f6;
+    --accent3: #2563eb;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top left, #3b82f6 0%, transparent 35%),
+        radial-gradient(circle at bottom right, #7c3aed 0%, transparent 35%),
+        var(--bg);
+
+    color: var(--text);
+
+    font-family:
+        Inter,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    outline: none;
+    border: 0;
+
+    opacity: 0;
+    transition: opacity .35s ease;
+}
+
+#loader {
+    position: fixed;
+    inset: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+
+    transition:
+        opacity .35s ease,
+        visibility .35s ease;
+}
+
+#panel {
+    width: min(440px, 90vw);
+
+    padding: 32px;
+
+    border-radius: 24px;
+
+    background: var(--glass);
+
+    border: 1px solid var(--glass-border);
+
+    box-shadow:
+        0 24px 60px rgba(0,0,0,.45),
+        inset 0 1px rgba(255,255,255,.08);
+}
+
+h1 {
+    font-size: 30px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+#status {
+    color: var(--muted);
+    margin-bottom: 20px;
+}
+
+#progress {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+}
+
+#bar {
+    width: 0%;
+    height: 100%;
+
+    border-radius: inherit;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--accent1),
+            var(--accent2),
+            var(--accent3)
+        );
+
+    transition: width .15s linear;
+}
+
+#error {
+    display: none;
+
+    margin-top: 18px;
+
+    color: #ffd5d5;
+
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.footer {
+    margin-top: 18px;
+
+    font-size: .85rem;
+    color: rgba(255,255,255,.45);
+
+    text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div id="loader">
+    <div id="panel">
+        <h1>PSXReloaded</h1>
+
+        <div id="status">
+            Preparing...
+        </div>
+
+        <div id="progress">
+            <div id="bar"></div>
+        </div>
+
+        <div id="error"></div>
+
+        <div class="footer">
+            Powered by WebAssembly
+        </div>
+    </div>
+</div>
+
+<canvas
+    id="canvas"
+    tabindex="-1"
+    oncontextmenu="event.preventDefault()"></canvas>
+
+<script>
+const loader = document.getElementById("loader");
+const canvas = document.getElementById("canvas");
+const status = document.getElementById("status");
+const bar = document.getElementById("bar");
+const errorBox = document.getElementById("error");
+
+var Module = {
+    canvas,
+
+    print(text) {
+        console.log(text);
+    },
+
+    printErr(text) {
+        console.error(text);
+    },
+
+    setStatus(text) {
+        if (!text)
+            return;
+
+        status.textContent = text;
+
+        const match = text.match(/\((\d+)\/(\d+)\)/);
+
+        if (match) {
+            const current = Number(match[1]);
+            const total = Number(match[2]);
+
+            if (total > 0) {
+                bar.style.width = `${current / total * 100}%`;
+            }
+        }
+    },
+
+    monitorRunDependencies(left) {
+        if (left !== 0)
+            return;
+
+        loader.style.opacity = "0";
+        loader.style.visibility = "hidden";
+
+        setTimeout(() => {
+            loader.remove();
+
+            canvas.style.opacity = "1";
+
+            // Give the browser two frames to finish layout before
+            // notifying the application.
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    window.dispatchEvent(new Event("resize"));
+                });
+            });
+        }, 350);
+    }
+};
+
+window.onerror = function(message) {
+    errorBox.style.display = "block";
+    errorBox.textContent = message;
+
+    loader.style.opacity = "1";
+    loader.style.visibility = "visible";
+};
+</script>
+
+{{{ SCRIPT }}}
+
+</body>
+</html>

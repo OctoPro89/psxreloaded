@@ -107,6 +107,9 @@ public:
 	const char* GetPath() const { return m_path; }
 	const char* GetName() const { return m_name; }
 
+#ifdef __EMSCRIPTEN__
+	friend class EmuWASMFSTools;
+#endif // __EMSCRIPTEN__
 private:
 
 	bool loadBin(const char* path);

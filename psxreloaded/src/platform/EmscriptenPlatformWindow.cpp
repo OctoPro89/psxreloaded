@@ -36,6 +36,18 @@ EM_JS(void, prevent_browser_keys, (), {
     });
 });
 
+EM_JS(void, __applicationRequestFullscreen__, (), {
+    const canvas = document.getElementById("canvas");
+    if (canvas.requestFullscreen)
+        canvas.requestFullscreen();
+    else if (canvas.webkitRequestFullscreen)
+        canvas.webkitRequestFullscreen();
+    else if (canvas.mozRequestFullScreen)
+        canvas.mozRequestFullScreen();
+});
+
+void applicationRequestFullscreen() { __applicationRequestFullscreen__(); }
+
 EM_BOOL PlatformWindow::MouseMoveCallback(int eventType, const EmscriptenMouseEvent* e, void* userData)
 {
     PlatformWindow* window = static_cast<PlatformWindow*>(userData);
@@ -48,7 +60,6 @@ EM_BOOL PlatformWindow::MouseMoveCallback(int eventType, const EmscriptenMouseEv
 
     return EM_TRUE;
 }
-
 
 EM_BOOL PlatformWindow::MouseButtonCallback(int eventType, const EmscriptenMouseEvent* e, void* userData)
 {
@@ -82,12 +93,29 @@ EM_BOOL PlatformWindow::MouseButtonCallback(int eventType, const EmscriptenMouse
     return EM_TRUE;
 }
 
-
-EM_BOOL PlatformWindow::MouseWheelCallback(int eventType, const EmscriptenWheelEvent* e, void* userData)
+// designed to be like WM_MOUSEWHEEL in the Win32 API
+EM_BOOL PlatformWindow::MouseWheelCallback( int, const EmscriptenWheelEvent* e, void* userData)
 {
-    PlatformWindow* window = static_cast<PlatformWindow*>(userData);
+    auto* window = static_cast<PlatformWindow*>(userData);
 
-    window->m_mouseDelta += (float)e->deltaY;
+    double delta = e->deltaY;
+
+    switch (e->deltaMode)
+    {
+    case DOM_DELTA_PIXEL:
+        delta /= 100.0;      // roughly one wheel notch
+        break;
+
+    case DOM_DELTA_LINE:
+        break;
+
+    case DOM_DELTA_PAGE:
+        delta *= 3.0;
+        break;
+    }
+
+    // Browser positive is "scroll down".
+    window->m_mouseDelta -= (float)delta;
 
     return EM_TRUE;
 }
@@ -96,7 +124,6 @@ EM_BOOL PlatformWindow::MouseWheelCallback(int eventType, const EmscriptenWheelE
 
 EM_BOOL PlatformWindow::FullscreenResizeCallback(int eventType, const EmscriptenFullscreenChangeEvent* e, void* userData)
 {
-    /*
     PlatformWindow* window = static_cast<PlatformWindow*>(userData);
 
     int width;
@@ -117,14 +144,12 @@ EM_BOOL PlatformWindow::FullscreenResizeCallback(int eventType, const Emscripten
 
     if (window->m_windowResizeCallback)
         window->m_windowResizeCallback(width, height);
-    */
 
     return EM_TRUE;
 }
 
 EM_BOOL PlatformWindow::ResizeCallback(int eventType, const EmscriptenUiEvent* e, void* userData)
 {
-    /*
     PlatformWindow* window = static_cast<PlatformWindow*>(userData);
 
     double cssWidth;
@@ -157,7 +182,6 @@ EM_BOOL PlatformWindow::ResizeCallback(int eventType, const EmscriptenUiEvent* e
 
     if (window->m_windowResizeCallback)
         window->m_windowResizeCallback(width, height);
-    */
 
     return EM_TRUE;
 }

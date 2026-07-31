@@ -32,9 +32,9 @@ for /R shaders\gles3 %%F in (*.glsl) do (
     set PRELOAD=!PRELOAD! --preload-file "%%F"
 )
 
-for %%F in (*.bin) do (
-    set PRELOAD=!PRELOAD! --preload-file "%%F"
-)
+rem for %%F in (*.bin) do (
+rem    set PRELOAD=!PRELOAD! --preload-file "%%F"
+rem )
 
 echo.
 echo Building...
@@ -55,6 +55,7 @@ src\platform\ControllerInput.c ^
 --preload-file "CascadiaCode-Medium.ttf" ^
 --preload-file "SCPH1001.bin" ^
 -DRELEASE ^
+--shell-file wasm\shell.html ^
 -o wasm\psxreloaded.html
 
 if errorlevel 1 (

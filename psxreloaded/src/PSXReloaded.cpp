@@ -75,6 +75,9 @@ struct HostInput
 	HostControllerInput controllers[kMaxControllers];
 };
 
+// TODO cleanup
+MenuBar::FrameStats stats;
+
 static bool s_quitOnEscape = false;
 static bool s_quit = false;
 static bool s_mainMenuBarVisible = true;
@@ -757,6 +760,7 @@ int main(int argc, char** argv)
 	printf("Loading virtual disc image: 'Crash Bandicoot (USA).bin'\n");
 
 	// TODO: remove
+#if 0
 #ifdef __EMSCRIPTEN__
 	CD& cd = Host::GetCD();
 	if (!cd.LoadFromFile("Crash Bandicoot (USA).bin"))
@@ -766,7 +770,7 @@ int main(int argc, char** argv)
 	}
 	Host::GetBus().GetCDROM().InsertDisc(cd);
 #endif // __EMSCRIPTEN__
-	printf("Loaded virtual disc image: 'Crash Bandicoot (USA).bin'\n");
+#endif
 	printf("Initializing UI Framework\n");
 	if (!xgui::init())
 	{
@@ -872,6 +876,20 @@ int main(int argc, char** argv)
 		// TODO: frame skip
 		if (frameTimeSeconds > 0.5)
 			frameTimeSeconds = 1.0 / refreshRate; // Probably debugging
+
+		// -- FRAMERATE CALCULATION --
+		stats.accumulator += frameTimeSeconds;
+		stats.frames++;
+
+		if (stats.accumulator >= 0.5)
+		{
+			stats.fps = stats.frames / stats.accumulator;
+			stats.frameTimeMS = (stats.accumulator * 1000.0) / stats.frames;
+
+			stats.accumulator = 0.0;
+			stats.frames = 0;
+		}
+		// -- FRAMERATE CALCULATION --
 
 		// TODO: Get refresh rate
 		Host::Update(/* displayFramePeriodSeconds */ 1.0 / refreshRate, frameTimeSeconds);

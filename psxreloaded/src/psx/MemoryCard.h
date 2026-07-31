@@ -87,6 +87,9 @@ public:
 	State GetState() const { return m_state; }
 	const u8* GetData() const { return m_data; }
 
+#ifdef __EMSCRIPTEN__
+	friend class EmuWASMFSTools;
+#endif // __EMSCRIPTEN__
 private:
 
 	bool write8_Idle(u8 val, u8& response);
