@@ -378,7 +378,7 @@ static void handleInput()
 	// TODO: actual input layer, controller input fr
 	const HostControllerInput hostController0_prev = s_hostInput.controllers[0];
 	HostControllerInput& hostController0 = s_hostInput.controllers[0];
-	//hostController0.buttonSelect = m_keys[VK_SHIFT];
+	hostController0.buttonSelect = window->IsKeyDown(PlatformInput::Shift);
 	//hostController0.buttonL3 = ;
 	//hostController0.buttonR3 = Input::GetKeyState(SDL_SCANCODE_RCTRL) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
 	hostController0.buttonStart = window->IsKeyDown(PlatformInput::Enter);
@@ -706,13 +706,13 @@ int main(int argc, char** argv)
 
 	printf("Window created, starting application!\n");
 
-#ifdef __EMSCRIPTEN__
-	const bool audioSubSystemInitialised = false;
-#else
+// #ifdef __EMSCRIPTEN__
+	// const bool audioSubSystemInitialised = false;
+// #else
 	const bool audioSubSystemInitialised = true;
-#endif
+// #endif
 
-	if (!Host::Init(/* audioSubSystemInitialised */ audioSubSystemInitialised, commandLineArgs.biosPath))
+	if (!Host::Init(audioSubSystemInitialised, commandLineArgs.biosPath))
 	{
 		LOG_ERROR("Failed to initialise host\n");
 		return EXIT_FAILURE;

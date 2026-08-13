@@ -51,6 +51,9 @@ src\platform\ControllerInput.c ^
 -sUSE_WEBGL2=1 ^
 -sFULL_ES3=1 ^
 -sALLOW_MEMORY_GROWTH=1 ^
+-sAUDIO_WORKLET=1 ^
+-sWASM_WORKERS=1 ^
+-DPSXRELOADED_WASM_AUDIO=1 ^
 !PRELOAD! ^
 --preload-file "CascadiaCode-Medium.ttf" ^
 --preload-file "SCPH1001.bin" ^

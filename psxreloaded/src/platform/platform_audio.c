@@ -265,10 +265,177 @@ u32 platform_audio_get_queued_frames(void)
 #endif // _WIN32
 
 #ifdef __EMSCRIPTEN__
-u32 platform_audio_output_sample_rate = 48000;
-u8 platform_audio_init() { return 0; }
-void platform_audio_shutdown() {}
-void platform_audio_push(const s16* samples, u32 frames) {}
-u32 platform_audio_get_queued_frames() { return 0; }
-void platform_audio_clear() {}
+
+#ifdef PSXRELOADED_WASM_AUDIO
+
+#include <emscripten/html5.h>
+#include <stdio.h>
+
+EM_JS(void, wasm_audio_init, (), {
+    console.log("wasm_audio_init()");
+    try {
+        console.log("Creating AudioContext()");
+        window.audioCtx = new AudioContext({ sampleRate: 41000 });
+        console.log(`Created AudioContext(): ${window.audioCtx}`); 
+
+        window.workletNode = null;
+
+        const audioWorkletSource = `
+            class PSXReloadedProcessor extends AudioWorkletProcessor {
+			constructor() {
+				super();
+
+				// 4096 stereo frames ~= 85 ms at 48 kHz
+				this.bufferFrames = 4096;
+				this.bufferSamples = this.bufferFrames * 2;
+
+				this.buffer = new Float32Array(this.bufferSamples);
+
+				this.readPos = 0;
+				this.writePos = 0;
+
+				this.port.onmessage = (event) => {
+					if (event.data.type !== "push")
+						return;
+
+					const samples = event.data.samples;
+
+					for (let i = 0; i < samples.length; i += 2) {
+						const next =
+							(this.writePos + 2) % this.bufferSamples;
+
+						// Full: drop incoming audio.
+						if (next === this.readPos)
+							break;
+
+						this.buffer[this.writePos] = samples[i];
+						this.buffer[this.writePos + 1] = samples[i + 1];
+
+						this.writePos = next;
+					}
+				};
+			}
+
+			process(inputs, outputs) {
+				const output = outputs[0];
+
+				const left = output[0];
+				const right = output[1];
+
+				for (let i = 0; i < left.length; i++) {
+					if (this.readPos !== this.writePos) {
+						left[i] = this.buffer[this.readPos];
+						right[i] = this.buffer[this.readPos + 1];
+
+						this.readPos =
+							(this.readPos + 2) % this.bufferSamples;
+					} else {
+						left[i] = 0;
+						right[i] = 0;
+					}
+				}
+
+				return true;
+			}
+		}
+
+		registerProcessor(
+			"psxreloaded-processor",
+			PSXReloadedProcessor
+		);
+        `;
+
+        const dataUri = "data:application/javascript," + encodeURIComponent(audioWorkletSource);
+
+        window.audioCtx.audioWorklet.addModule(dataUri).then(() => {
+            window.workletNode = new AudioWorkletNode(
+                window.audioCtx, "psxreloaded-processor", {
+                    numberOfOutputs: 1,
+                    outputChannelCount : [2]
+                }
+            );
+
+            window.workletNode.connect(window.audioCtx.destination);
+        });
+    } catch (e) {
+        console.log(`[PSXReloaded]: Javascript AudioWorklet API failed to initialize. Audio will not be available. Browser Error: ${e}`);
+        alert(`[PSXReloaded]: Javascript AudioWorklet API failed to initialize. Audio will not be available. Browser Error: ${e}`);
+        return 1;
+    }
+});
+
+EM_JS(void, wasm_audio_push,
+    (const s16* samples, u32 frames), {
+
+    if (!window.workletNode) {
+        return;
+    }
+
+    const count = frames * 2;
+
+    const input = HEAP16.subarray(
+        samples >> 1,
+        (samples >> 1) + count
+    );
+
+    const output = new Float32Array(count);
+
+    for (let i = 0; i < count; i++) {
+        output[i] = input[i] / 32768.0;
+    }
+
+    window.workletNode.port.postMessage(
+        {
+            type: "push",
+            samples: output
+        },
+        [output.buffer]
+    );
+});
+
+
+EM_JS(void, wasm_audio_shutdown, (), {
+    if (window.audioCtx) {
+        window.audioCtx.close();
+        window.audioCtx = null;
+        window.workletNode = null;
+    }
+});
+
+bool wasm_audio_initialized = false;
+
+#ifdef __cplusplus
+extern "C"
+#endif // __cplusplus
+void EMSCRIPTEN_KEEPALIVE wasmAudioInit()
+{
+    wasm_audio_init();
+    wasm_audio_initialized = true;
+}
+
+u32 platform_audio_output_sample_rate = 41000; // 48000;
+
+#endif // PSXRELOADED_WASM_AUDIO
+
+u8 platform_audio_init()
+{
+    return true;
+}
+
+void platform_audio_shutdown()
+{
+    wasm_audio_shutdown();
+}
+
+void platform_audio_push(const s16* samples, u32 frames)
+{
+    if (!wasm_audio_initialized) { return; }
+    wasm_audio_push(samples, frames);
+}
+
+u32 platform_audio_get_queued_frames()
+{
+    return 0;
+}
+
 #endif // __EMSCRIPTEN__
