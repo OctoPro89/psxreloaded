@@ -239,6 +239,10 @@ window.onerror = function(message) {
     loader.style.opacity = "1";
     loader.style.visibility = "visible";
 };
+
+
+window.addEventListener("mousedown", () => { Module._wasmAudioInit(); }, { once: true });
+window.addEventListener("keydown", () => { Module._wasmAudioInit(); }, { once: true });
 </script>
 
 {{{ SCRIPT }}}

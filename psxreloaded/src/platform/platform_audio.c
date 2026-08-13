@@ -409,6 +409,7 @@ extern "C"
 #endif // __cplusplus
 void EMSCRIPTEN_KEEPALIVE wasmAudioInit()
 {
+	if (wasm_audio_initialized) { return; }
     wasm_audio_init();
     wasm_audio_initialized = true;
 }
