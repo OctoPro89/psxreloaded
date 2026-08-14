@@ -275,7 +275,7 @@ EM_JS(void, wasm_audio_init, (), {
     console.log("wasm_audio_init()");
     try {
         console.log("Creating AudioContext()");
-        window.audioCtx = new AudioContext({ sampleRate: 41000 });
+        window.audioCtx = new AudioContext({ sampleRate: 44100 });
         console.log(`Created AudioContext(): ${window.audioCtx}`); 
 
         window.workletNode = null;
@@ -414,7 +414,7 @@ void EMSCRIPTEN_KEEPALIVE wasmAudioInit()
     wasm_audio_initialized = true;
 }
 
-u32 platform_audio_output_sample_rate = 41000; // 48000;
+u32 platform_audio_output_sample_rate = 44100; // 48000;
 
 #endif // PSXRELOADED_WASM_AUDIO
 

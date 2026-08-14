@@ -276,7 +276,11 @@ menus:
 			snprintf(buf, 100, "    Resampling method: Static %d kHz (host) to 44100 kHz (PSX)", platform_audio_output_sample_rate);
 			wlayout.UItext(buf, 15.0f);
 #elif __EMSCRIPTEN__
-			wlayout.UItext("    Audio currently not available in WebAssembly builds", 15.0f);
+			wlayout.UItext("    Audio backend: AudioWorklet API", 15.0f);
+			snprintf(buf, 100, "    Current host sampling rate: %d kHz", platform_audio_output_sample_rate);
+			wlayout.UItext(buf, 15.0f);
+			snprintf(buf, 100, "    Resampling method: Static %d kHz (host) to 44100 kHz (PSX)", platform_audio_output_sample_rate);
+			wlayout.UItext(buf, 15.0f);
 #endif // _WIN32
 			wlayout.UItext("Virtual controller port 1 info:", 15.0f);
 #ifdef _WIN32
@@ -339,7 +343,8 @@ menus:
 			wlayout.UItext("Compile command:", 15.0f);
 			wlayout.UItext("    em++ [SOURCES] [INCLUDE_DIR] -std=c++17 -O3 -sUSE_WEBGL2=1", 15.0f);
 			wlayout.UItext("    -sFULL_ES3=1 -sALLOW_MEMORY_GROWTH=1 [PRELOADED_FILES]", 15.0f);
-			wlayout.UItext("    -DRELEASE --shell-file wasm\\shell.html -o wasm\\psxreloaded.html", 15.0f);
+			wlayout.UItext("    -DPSXRELOADED_WASM_AUDIO=1 -DRELEASE", 15.0f);
+			wlayout.UItext("    --shell-file wasm\\shell.html -o wasm\\psxreloaded.html", 15.0f);
 #endif // _WIN32
 
 			if (wlayout.UIbutton("Close", 15.0f))

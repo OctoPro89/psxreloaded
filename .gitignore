@@ -427,3 +427,12 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# WASM
+psxreloaded/wasm/*.data
+psxreloaded/wasm/*.html
+psxreloaded/wasm/*.js
+psxreloaded/wasm/*.wasm
+
+# preserve shell
+!psxreloaded/wasm/shell.html
