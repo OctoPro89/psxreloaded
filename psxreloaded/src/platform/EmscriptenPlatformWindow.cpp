@@ -19,7 +19,8 @@ EM_JS(void, prevent_browser_keys, (), {
         if (
             e.code.startsWith("Arrow") ||
             e.code === "Space" ||
-            e.code.startsWith("F")
+            e.code.startsWith("F") ||
+            e.code.startsWith("Control")
         ) {
             e.preventDefault();
         }
@@ -29,7 +30,8 @@ EM_JS(void, prevent_browser_keys, (), {
         if (
             e.code.startsWith("Arrow") ||
             e.code === "Space" ||
-            e.code.startsWith("F")
+            e.code.startsWith("F") ||
+            e.code.startsWith("Control")
         ) {
             e.preventDefault();
         }
@@ -191,6 +193,8 @@ EM_BOOL PlatformWindow::KeyCallback(int eventType, const EmscriptenKeyboardEvent
     PlatformWindow* window = static_cast<PlatformWindow*>(userData);
 
     int key = 0;
+
+    printf("%d\n", (int)e->keyCode);
 
     // TODO: possibly translate
     if (e->keyCode > 0 && e->keyCode < 256)

@@ -285,7 +285,7 @@ menus:
 			wlayout.UItext("Virtual controller port 1 info:", 15.0f);
 #ifdef _WIN32
 			wlayout.UItext("    Controller API: XInput", 15.0f);
-			wlayout.UItext(controller0_state->connected ? "    Connected: true" : "   Connected: false", 15.0f);
+			wlayout.UItext(controller0_state->connected ? "    Connected: true" : "    Connected : false", 15.0f);
 			snprintf(buf, 100, "    Cross: %s | Circle: %s",
 				controller0_state->buttons[BUTTON_CROSS] ? "true" : "false",
 				controller0_state->buttons[BUTTON_CIRCLE] ? "true" : "false"
@@ -400,9 +400,9 @@ menus:
 
 			wlayout.UItext("Port 1:", 15.0f);
 			const char* labels[] = {
-				"Digital",
-				"Analog",
-				"None",
+				"Digital##1",
+				"Analog##1",
+				"None##1",
 			};
 
 			const f32 y_positions[] = {
@@ -412,10 +412,65 @@ menus:
 			};
 
 			static bool values[3] = { true, false, false };
+			bool oldValues[3] = { values[0], values[1], values[2] };
 
 			wlayout.current_y += 50.0f + (wlayout.spacing * 2);
 
 			xgui::radioButtons(labels, values, 3, wlayout.start_x - 190.0f, (f32*)y_positions, 24.0f);
+
+			if (oldValues[0] != values[0] && values[0])
+			{
+				ControllerPort& port = Host::GetBus().GetSIO().GetPort(0);
+				port.GetController().SetType(Controller::Type::Digital);
+				port.SetControllerConnected(true);
+			}
+			else if (oldValues[1] != values[1] && values[1])
+			{
+				ControllerPort& port = Host::GetBus().GetSIO().GetPort(0);
+				port.GetController().SetType(Controller::Type::Analogue);
+				port.SetControllerConnected(true);
+			}
+			else if (oldValues[2] != values[2] && values[2])
+			{
+				Host::GetBus().GetSIO().GetPort(0).SetControllerConnected(false);
+			}
+
+			wlayout.UItext("Port 2:", 15.0f);
+			static bool values2[3] = { false, false, false };
+			bool oldValues2[3] = { values2[0], values2[1], values2[2] };
+
+			const char* labels2[] = {
+				"Digital##2",
+				"Analog##2",
+				"None##2",
+			};
+
+			const f32 y_positions2[] = {
+				wlayout.current_y - 8.0f,
+				wlayout.current_y + wlayout.spacing,
+				wlayout.current_y + 28.0f + wlayout.spacing,
+			};
+
+			wlayout.current_y += 50.0f + (wlayout.spacing * 2);
+
+			xgui::radioButtons(labels2, values2, 3, wlayout.start_x - 190.0f, (f32*)y_positions2, 24.0f);
+
+			if (oldValues2[0] != values2[0] && values2[0])
+			{
+				ControllerPort& port = Host::GetBus().GetSIO().GetPort(1);
+				port.GetController().SetType(Controller::Type::Digital);
+				port.SetControllerConnected(true);
+			}
+			else if (oldValues2[1] != values2[1] && values2[1])
+			{
+				ControllerPort& port = Host::GetBus().GetSIO().GetPort(1);
+				port.GetController().SetType(Controller::Type::Analogue);
+				port.SetControllerConnected(true);
+			}
+			else if (oldValues2[2] != values2[2] && values2[2])
+			{
+				Host::GetBus().GetSIO().GetPort(1).SetControllerConnected(false);
+			}
 
 			wlayout.UItext("Key bindings:", 15.0f);
 			wlayout.UItext("    DPAD (Digital): W/A/S/D", 15.0f);
@@ -425,11 +480,8 @@ menus:
 			wlayout.UItext("    Square (Digital): Left Arrow", 15.0f);
 
 			wlayout.UItext("See Info tab for gamepad info", 15.0f);
-			// TODO finish...
 
-			// TODO implement
-
-			// TODO port 2
+			wlayout.UIend();
 
 			if (wlayout.UIbutton("Close", 15.0f))
 			{

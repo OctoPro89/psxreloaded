@@ -142,6 +142,9 @@ void keyboardCallback(int vkCode, bool isPressed)
 		state_char = c;
 	}
 #endif // _WIN32
+#ifdef __EMSCRIPTEN__
+	control = window->IsKeyDown(PlatformInput::Control);
+#endif // __EMSCRIPTEN__
 }
 
 xgui::InputState pollEventsAndGetKeyboard()
@@ -378,105 +381,149 @@ static void handleInput()
 	// TODO: actual input layer, controller input fr
 	const HostControllerInput hostController0_prev = s_hostInput.controllers[0];
 	HostControllerInput& hostController0 = s_hostInput.controllers[0];
-	hostController0.buttonSelect = window->IsKeyDown(PlatformInput::Shift);
-	//hostController0.buttonL3 = ;
-	//hostController0.buttonR3 = Input::GetKeyState(SDL_SCANCODE_RCTRL) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
-	hostController0.buttonStart = window->IsKeyDown(PlatformInput::Enter);
-	hostController0.joypadUp = window->IsKeyDown(PlatformInput::W);
-	hostController0.joypadRight = window->IsKeyDown(PlatformInput::D);
-	hostController0.joypadDown = window->IsKeyDown(PlatformInput::S);
-	hostController0.joypadLeft = window->IsKeyDown(PlatformInput::A);
-	//if (s_hostLeftAnalogueStickToDpadInDigitalMode[0] && Host::GetBus().GetSIO().GetPort(0).GetController().GetType() == Controller::Type::Digital)
-	//{
-	//	hostController0.joypadUp |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) < -0.5f;;
-	//	hostController0.joypadRight |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX) > 0.5f;
-	//	hostController0.joypadDown |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) > 0.5f;
-	//	hostController0.joypadLeft |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX) < -0.5f;
-	//}
-	hostController0.buttonL2 = window->IsKeyDown(PlatformInput::Num2);
-	hostController0.buttonR2 = window->IsKeyDown(PlatformInput::Num9);
-	hostController0.buttonL1 = window->IsKeyDown(PlatformInput::Num1);
-	hostController0.buttonR1 = window->IsKeyDown(PlatformInput::Num0);
-	hostController0.buttonNorth = window->IsKeyDown(PlatformInput::UpArrow); // PlayStation Triangle / Nintendo Y / Xbox Y
-	hostController0.buttonEast = window->IsKeyDown(PlatformInput::RightArrow);  // PlayStation Circle / Nintendo A / Xbox B
-	hostController0.buttonSouth = window->IsKeyDown(PlatformInput::DownArrow); // PlayStation Cross / Nintendo B / Xbox A
-	hostController0.buttonWest = window->IsKeyDown(PlatformInput::LeftArrow);  // PlayStation Square / Nintendo X / Xbox X
-	//hostController0.m_leftStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX);
-	//hostController0.m_leftStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY);
-	//hostController0.m_rightStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTX);
-	//hostController0.m_rightStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTY);
 
-	// #TODO: Implement second controller input
 	const HostControllerInput hostController1_prev = s_hostInput.controllers[1];
 	HostControllerInput& hostController1 = s_hostInput.controllers[1];
-	/*
-	hostController1.buttonSelect = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_BACK);
-	hostController1.buttonL3 = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_LEFT_STICK);
-	hostController1.buttonR3 = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
-	hostController1.buttonStart = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_START);
-	hostController1.joypadUp = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_DPAD_UP);
-	hostController1.joypadRight = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
-	hostController1.joypadDown = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
-	hostController1.joypadLeft = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_DPAD_LEFT);
-	if (s_hostLeftAnalogueStickToDpadInDigitalMode[1] && Host::GetBus().GetSIO().GetPort(1).GetController().GetType() == Controller::Type::Digital)
+
+	if (Host::GetBus().GetSIO().GetPort(0).IsControllerConnected())
 	{
-		hostController1.joypadUp |= Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_LEFTY) < -0.5f;;
-		hostController1.joypadRight |= Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_LEFTX) > 0.5f;
-		hostController1.joypadDown |= Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_LEFTY) > 0.5f;
-		hostController1.joypadLeft |= Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_LEFTX) < -0.5f;
-	}
-	hostController1.buttonL2 = Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 0.5f;
-	hostController1.buttonR2 = Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 0.5f;
-	hostController1.buttonL1 = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
-	hostController1.buttonR1 = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
-	hostController1.buttonNorth = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_NORTH); // PlayStation Triangle / Nintendo Y / Xbox Y
-	hostController1.buttonEast = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_EAST);  // PlayStation Circle / Nintendo A / Xbox B
-	hostController1.buttonSouth = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_SOUTH); // PlayStation Cross / Nintendo B / Xbox A
-	hostController1.buttonWest = Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_WEST);  // PlayStation Square / Nintendo X / Xbox X
-	hostController1.m_leftStickX = Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_LEFTX);
-	hostController1.m_leftStickY = Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_LEFTY);
-	hostController1.m_rightStickX = Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_RIGHTX);
-	hostController1.m_rightStickY = Input::GetAxisValue(1, SDL_GAMEPAD_AXIS_RIGHTY);
-	*/
+		hostController0.buttonSelect = window->IsKeyDown(PlatformInput::Shift);
+		//hostController0.buttonL3 = ;
+		//hostController0.buttonR3 = Input::GetKeyState(SDL_SCANCODE_RCTRL) || Input::GetButtonState(0, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
+		hostController0.buttonStart = window->IsKeyDown(PlatformInput::Enter);
+		hostController0.joypadUp = window->IsKeyDown(PlatformInput::W);
+		hostController0.joypadRight = window->IsKeyDown(PlatformInput::D);
+		hostController0.joypadDown = window->IsKeyDown(PlatformInput::S);
+		hostController0.joypadLeft = window->IsKeyDown(PlatformInput::A);
+		//if (s_hostLeftAnalogueStickToDpadInDigitalMode[0] && Host::GetBus().GetSIO().GetPort(0).GetController().GetType() == Controller::Type::Digital)
+		//{
+		//	hostController0.joypadUp |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) < -0.5f;;
+		//	hostController0.joypadRight |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX) > 0.5f;
+		//	hostController0.joypadDown |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) > 0.5f;
+		//	hostController0.joypadLeft |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX) < -0.5f;
+		//}
+		hostController0.buttonL2 = window->IsKeyDown(PlatformInput::Num2);
+		hostController0.buttonR2 = window->IsKeyDown(PlatformInput::Num9);
+		hostController0.buttonL1 = window->IsKeyDown(PlatformInput::Num1);
+		hostController0.buttonR1 = window->IsKeyDown(PlatformInput::Num0);
+		hostController0.buttonNorth = window->IsKeyDown(PlatformInput::UpArrow); // PlayStation Triangle / Nintendo Y / Xbox Y
+		hostController0.buttonEast = window->IsKeyDown(PlatformInput::RightArrow);  // PlayStation Circle / Nintendo A / Xbox B
+		hostController0.buttonSouth = window->IsKeyDown(PlatformInput::DownArrow); // PlayStation Cross / Nintendo B / Xbox A
+		hostController0.buttonWest = window->IsKeyDown(PlatformInput::LeftArrow);  // PlayStation Square / Nintendo X / Xbox X
+		//hostController0.m_leftStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX);
+		//hostController0.m_leftStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY);
+		//hostController0.m_rightStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTX);
+		//hostController0.m_rightStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTY);
 
-	// Do controller input after if connected
-	// TODO: Controller UI, rumble
-	const InputState* controller = controller_input_get_controller(0);
-	if (controller->connected && !uiControllerMode)
-	{
-		hostController0.buttonSelect = controller->buttons[BUTTON_SELECT];
-		hostController0.buttonStart = controller->buttons[BUTTON_START];
-
-		hostController0.joypadUp = controller->buttons[BUTTON_UP];
-		hostController0.joypadRight = controller->buttons[BUTTON_RIGHT];
-		hostController0.joypadDown = controller->buttons[BUTTON_DOWN];
-		hostController0.joypadLeft = controller->buttons[BUTTON_LEFT];
-
-		if (s_hostLeftAnalogueStickToDpadInDigitalMode[0] && Host::GetBus().GetSIO().GetPort(0).GetController().GetType() == Controller::Type::Digital)
+		// Do controller input after if connected
+		// TODO: Controller UI, rumble
+		const InputState* controller = controller_input_get_controller(0);
+		if (controller->connected && !uiControllerMode)
 		{
-			const float threshold = 0.5f;
-			hostController0.joypadUp |= controller->left_y > threshold;
-			hostController0.joypadDown |= controller->left_y < -threshold;
-			hostController0.joypadLeft |= controller->left_x < -threshold;
-			hostController0.joypadRight |= controller->left_x > threshold;
+			hostController0.buttonSelect = controller->buttons[BUTTON_SELECT];
+			hostController0.buttonStart = controller->buttons[BUTTON_START];
+
+			hostController0.joypadUp = controller->buttons[BUTTON_UP];
+			hostController0.joypadRight = controller->buttons[BUTTON_RIGHT];
+			hostController0.joypadDown = controller->buttons[BUTTON_DOWN];
+			hostController0.joypadLeft = controller->buttons[BUTTON_LEFT];
+
+			if (s_hostLeftAnalogueStickToDpadInDigitalMode[0] && Host::GetBus().GetSIO().GetPort(0).GetController().GetType() == Controller::Type::Digital)
+			{
+				const float threshold = 0.5f;
+				hostController0.joypadUp |= controller->left_y > threshold;
+				hostController0.joypadDown |= controller->left_y < -threshold;
+				hostController0.joypadLeft |= controller->left_x < -threshold;
+				hostController0.joypadRight |= controller->left_x > threshold;
+			}
+
+			hostController0.buttonL1 = controller->buttons[BUTTON_L1];
+			hostController0.buttonL2 = controller->buttons[BUTTON_L2];
+			hostController0.buttonR1 = controller->buttons[BUTTON_R1];
+			hostController0.buttonR2 = controller->buttons[BUTTON_R2];
+			hostController0.buttonL3 = controller->buttons[BUTTON_L3];
+			hostController0.buttonR3 = controller->buttons[BUTTON_R3];
+
+			hostController0.buttonNorth = controller->buttons[BUTTON_TRIANGLE]; // PlayStation Triangle / Nintendo Y / Xbox Y
+			hostController0.buttonEast = controller->buttons[BUTTON_CIRCLE];  // PlayStation Circle / Nintendo A / Xbox B
+			hostController0.buttonSouth = controller->buttons[BUTTON_CROSS]; // PlayStation Cross / Nintendo B / Xbox A
+			hostController0.buttonWest = controller->buttons[BUTTON_SQUARE];  // PlayStation Square / Nintendo X / Xbox X
+
+			hostController0.m_leftStickX = controller->left_x;
+			hostController0.m_leftStickY = controller->left_y;
+			hostController0.m_rightStickX = controller->right_x;
+			hostController0.m_rightStickY = controller->right_y;
 		}
+	}
+	if (Host::GetBus().GetSIO().GetPort(1).IsControllerConnected())
+	{
+		hostController1.buttonSelect = window->IsKeyDown(PlatformInput::Shift);
+		//hostController1.buttonL3 = ;
+		//hostController1.buttonR3 = Input::GetKeyState(SDL_SCANCODE_RCTRL) || Input::GetButtonState(1, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
+		hostController1.buttonStart = window->IsKeyDown(PlatformInput::Enter);
+		hostController1.joypadUp = window->IsKeyDown(PlatformInput::W);
+		hostController1.joypadRight = window->IsKeyDown(PlatformInput::D);
+		hostController1.joypadDown = window->IsKeyDown(PlatformInput::S);
+		hostController1.joypadLeft = window->IsKeyDown(PlatformInput::A);
+		//if (s_hostLeftAnalogueStickToDpadInDigitalMode[1] && Host::GetBus().GetSIO().GetPort(1).GetController().GetType() == Controller::Type::Digital)
+		//{
+		//	hostController1.joypadUp |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) < -0.5f;;
+		//	hostController1.joypadRight |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX) > 0.5f;
+		//	hostController1.joypadDown |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY) > 0.5f;
+		//	hostController1.joypadLeft |= Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX) < -0.5f;
+		//}
+		hostController1.buttonL2 = window->IsKeyDown(PlatformInput::Num2);
+		hostController1.buttonR2 = window->IsKeyDown(PlatformInput::Num9);
+		hostController1.buttonL1 = window->IsKeyDown(PlatformInput::Num1);
+		hostController1.buttonR1 = window->IsKeyDown(PlatformInput::Num1);
+		hostController1.buttonNorth = window->IsKeyDown(PlatformInput::UpArrow); // PlayStation Triangle / Nintendo Y / Xbox Y
+		hostController1.buttonEast = window->IsKeyDown(PlatformInput::RightArrow);  // PlayStation Circle / Nintendo A / Xbox B
+		hostController1.buttonSouth = window->IsKeyDown(PlatformInput::DownArrow); // PlayStation Cross / Nintendo B / Xbox A
+		hostController1.buttonWest = window->IsKeyDown(PlatformInput::LeftArrow);  // PlayStation Square / Nintendo X / Xbox X
+		//hostController1.m_leftStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTX);
+		//hostController1.m_leftStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_LEFTY);
+		//hostController1.m_rightStickX = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTX);
+		//hostController1.m_rightStickY = Input::GetAxisValue(0, SDL_GAMEPAD_AXIS_RIGHTY);
 
-		hostController0.buttonL1 = controller->buttons[BUTTON_L1];
-		hostController0.buttonL2 = controller->buttons[BUTTON_L2];
-		hostController0.buttonR1 = controller->buttons[BUTTON_R1];
-		hostController0.buttonR2 = controller->buttons[BUTTON_R2];
-		hostController0.buttonL3 = controller->buttons[BUTTON_L3];
-		hostController0.buttonR3 = controller->buttons[BUTTON_R3];
+		// Do controller input after if connected
+		// TODO: Controller UI, rumble
+		const InputState* controller = controller_input_get_controller(0);
+		if (controller->connected && !uiControllerMode)
+		{
+			hostController0.buttonSelect = controller->buttons[BUTTON_SELECT];
+			hostController1.buttonStart = controller->buttons[BUTTON_START];
 
-		hostController0.buttonNorth = controller->buttons[BUTTON_TRIANGLE]; // PlayStation Triangle / Nintendo Y / Xbox Y
-		hostController0.buttonEast = controller->buttons[BUTTON_CIRCLE];  // PlayStation Circle / Nintendo A / Xbox B
-		hostController0.buttonSouth = controller->buttons[BUTTON_CROSS]; // PlayStation Cross / Nintendo B / Xbox A
-		hostController0.buttonWest = controller->buttons[BUTTON_SQUARE];  // PlayStation Square / Nintendo X / Xbox X
+			hostController1.joypadUp = controller->buttons[BUTTON_UP];
+			hostController1.joypadRight = controller->buttons[BUTTON_RIGHT];
+			hostController1.joypadDown = controller->buttons[BUTTON_DOWN];
+			hostController1.joypadLeft = controller->buttons[BUTTON_LEFT];
 
-		hostController0.m_leftStickX = controller->left_x;
-		hostController0.m_leftStickY = controller->left_y;
-		hostController0.m_rightStickX = controller->right_x;
-		hostController0.m_rightStickY = controller->right_y;
+			if (s_hostLeftAnalogueStickToDpadInDigitalMode[1] && Host::GetBus().GetSIO().GetPort(1).GetController().GetType() == Controller::Type::Digital)
+			{
+				const float threshold = 0.5f;
+				hostController0.joypadUp |= controller->left_y > threshold;
+				hostController1.joypadDown |= controller->left_y < -threshold;
+				hostController1.joypadLeft |= controller->left_x < -threshold;
+				hostController1.joypadRight |= controller->left_x > threshold;
+			}
+
+			hostController1.buttonL1 = controller->buttons[BUTTON_L1];
+			hostController1.buttonL2 = controller->buttons[BUTTON_L2];
+			hostController1.buttonR1 = controller->buttons[BUTTON_R1];
+			hostController1.buttonR2 = controller->buttons[BUTTON_R2];
+			hostController1.buttonL3 = controller->buttons[BUTTON_L3];
+			hostController1.buttonR3 = controller->buttons[BUTTON_R3];
+
+			hostController1.buttonNorth = controller->buttons[BUTTON_TRIANGLE]; // PlayStation Triangle / Nintendo Y / Xbox Y
+			hostController1.buttonEast = controller->buttons[BUTTON_CIRCLE];  // PlayStation Circle / Nintendo A / Xbox B
+			hostController1.buttonSouth = controller->buttons[BUTTON_CROSS]; // PlayStation Cross / Nintendo B / Xbox A
+			hostController1.buttonWest = controller->buttons[BUTTON_SQUARE];  // PlayStation Square / Nintendo X / Xbox X
+
+			hostController1.m_leftStickX = controller->left_x;
+			hostController1.m_leftStickY = controller->left_y;
+			hostController1.m_rightStickX = controller->right_x;
+			hostController1.m_rightStickY = controller->right_y;
+		}
 	}
 
 	// Pass input state changes to emulator
@@ -853,16 +900,19 @@ int main(int argc, char** argv)
 		bool ctrl = input.key_ctrl;
 		bool shift = input.key_shift;
 
+		static bool lastFrameP = false;
+		static bool lastFrameCtrl = false;
+
 		if (s_quitOnEscape && input.key_escape && !ctrl && !shift)
 		{
 			LOG_INFO("Escape pressed, quitting\n");
 			s_quit = true;
 		}
 
-		if (input.key_ctrl && !shift)
+		if (input.key_ctrl && !lastFrameCtrl && !shift)
 			s_mainMenuBarVisible = !s_mainMenuBarVisible;
 
-		if (m_keys['P'])
+		if (window->IsKeyDown(PlatformInput::P) && !lastFrameP)
 		{
 			if (!ctrl && !shift) // alone
 				Host::s_paused = !Host::s_paused;
@@ -904,6 +954,9 @@ int main(int argc, char** argv)
 		glViewport(0, 0, window->GetWidth(), window->GetHeight());
 		xgui::endFrame();
 		window->SwapDC();
+
+		lastFrameP = window->IsKeyDown(PlatformInput::P);
+		lastFrameCtrl = window->IsKeyDown(PlatformInput::Control);
 
 		// revert state
 		state_char = 0;
