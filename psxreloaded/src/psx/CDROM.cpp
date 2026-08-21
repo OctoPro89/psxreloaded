@@ -1311,6 +1311,19 @@ void CDROM::EjectDisc()
 	m_stat.SpindleMotor = false;
 	m_stopped = true;
 	m_headLBA = 0;
+
+	m_stat.ShellOpen = true;
+
+	// #TODO: is this right?, 08h disc eject
+	errorINT5(0x08);
+	m_stat.ShellOpen = true;
+}
+
+void CDROM::SwapDisc(const CD& cd)
+{
+	m_stat.Error = false;
+	m_stat.SeekError = false;
+	InsertDisc(cd);
 }
 
 //

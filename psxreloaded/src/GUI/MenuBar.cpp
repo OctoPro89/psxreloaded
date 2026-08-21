@@ -190,6 +190,7 @@ menus:
 			static xgui::MenuItem fileMenu[] = {
 				{ "Insert disc..." },
 				{ "Eject disc" },
+				{ "Swap disc..." },
 				{ "Sideload executable..." },
 				{ "Screen capture", saveSubmenu, _countof(saveSubmenu) },
 				{ "Exit" }
@@ -223,7 +224,7 @@ menus:
 						}
 					}
 #else
-					frontendOpenROMPicker();
+					frontendOpenROMPicker(0);
 #endif // __EMSCRIPTEN__
 					break;
 				}
@@ -234,7 +235,24 @@ menus:
 				}
 				case 2:
 				{
-					// TODO:
+#ifndef __EMSCRIPTEN__
+					if (const char* fp = xgui::filePicker("Swap disc...", "Raw Binary (*.bin)\0*.bin\0Cue Sheets (*.cue)\0*.cue\0All Files\0*.*\0\0"))
+					{
+						CD& cd = Host::GetCD();
+						if (!cd.LoadFromFile(fp))
+						{
+							failedPopupOpen = true;
+							errorMsg = "Failed to load disc image!";
+							LOG_ERROR("Failed to load disc image: %s\n", fp);
+						}
+						else
+						{
+							bus.GetCDROM().SwapDisc(cd);
+						}
+					}
+#else
+					frontendOpenROMPicker(1);
+#endif // __EMSCRIPTEN__
 					break;
 				}
 				case 4:

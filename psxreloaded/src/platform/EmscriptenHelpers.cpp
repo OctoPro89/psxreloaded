@@ -10,6 +10,7 @@
 #include <string.h>
 
 static int currentMemoryCardIndex = 0;
+static int currentlySwappingDiscs = 0;
 
 EM_JS(void, __downloadMemoryCard__, (int port, const char* filename), {
 	const ptr = Module._GetMemoryCardData(port);
@@ -114,7 +115,7 @@ extern "C" void EMSCRIPTEN_KEEPALIVE memfree(void* block) { free(block); }
 
 void backendDownloadMemoryCard(int port, const char* downloadName) { __downloadMemoryCard__(port, downloadName); }
 void frontendOpenMemoryCardPicker(int index) { currentMemoryCardIndex = index; __openMemoryCardPicker__(); }
-void frontendOpenROMPicker() { __openROMPicker__(); }
+void frontendOpenROMPicker(int swappingDiscs) { currentlySwappingDiscs = swappingDiscs; __openROMPicker__(); }
 
 int EmuWASMFSTools::MemoryCardFromBuffer(int cardIndex, const uint8_t* data, int size)
 {
@@ -160,7 +161,14 @@ int EmuWASMFSTools::RomFromBuffer(const char* extension, const uint8_t* data, in
 		strncpy(cd.m_name, "Uploaded ROM", 256); // TODO
 
 		// insert it
-		Host::GetBus().GetCDROM().InsertDisc(cd);
+		if (currentlySwappingDiscs)
+		{
+			Host::GetBus().GetCDROM().SwapDisc(cd);
+		}
+		else
+		{
+			Host::GetBus().GetCDROM().InsertDisc(cd);
+		}
 		return 1;
 	}
 	else if (strcmp(extension, ".cue") == 0)

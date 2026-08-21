@@ -74,6 +74,7 @@ public:
 
 	void InsertDisc(const CD& cd);
 	void EjectDisc();
+	void SwapDisc(const CD& cd);
 	bool IsDiscInserted() const { return m_pCD != nullptr; }
 	const CD* GetCD() const { return m_pCD; }
 

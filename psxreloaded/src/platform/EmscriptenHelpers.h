@@ -18,7 +18,7 @@ extern "C" {
 
 void backendDownloadMemoryCard(int port, const char* downloadName);
 void frontendOpenMemoryCardPicker(int index);
-void frontendOpenROMPicker();
+void frontendOpenROMPicker(int swappingDiscs);
 
 #ifdef __cplusplus
 }
