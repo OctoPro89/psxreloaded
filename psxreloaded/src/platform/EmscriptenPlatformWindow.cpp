@@ -194,8 +194,6 @@ EM_BOOL PlatformWindow::KeyCallback(int eventType, const EmscriptenKeyboardEvent
 
     int key = 0;
 
-    printf("%d\n", (int)e->keyCode);
-
     // TODO: possibly translate
     if (e->keyCode > 0 && e->keyCode < 256)
         key = e->keyCode;
