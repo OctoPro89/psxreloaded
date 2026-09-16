@@ -727,8 +727,13 @@ void MDEC::runLengthDecodeBlock(const u16* & src, unsigned int & srcSizeHalfword
 		val = Clamp(val, -0x400, 0x3ff); // saturate to signed 11-bit range
 
 		// I think this step is only required for the "fast_idct_core" version
+#ifdef __EMSCRIPTEN__
+		if (fastIDCT)
+			val = (s32)((float)val * kScaleZag[k]);
+#else
 		if (fastIDCT)
 			val = (u16)(val * kScaleZag[k]);
+#endif // __EMSCRIPTEN__
 
 		if (q_scale > 0)
 			blk[kZagZig[k]] = (s16)val; // store entry (normal case) n.b. zagzig is inverse of zigzag
