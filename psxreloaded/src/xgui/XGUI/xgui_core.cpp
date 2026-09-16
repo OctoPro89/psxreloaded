@@ -123,7 +123,7 @@ namespace xgui
 #ifdef __EMSCRIPTEN__
             return font::loadFontSDF("CascadiaCode-Medium.ttf", s_context->text_size, &s_context->font_texture, &s_context->glyphs[0]);
 #elif _WIN32
-            return font::loadFontSDF("C:/Users/vince/Downloads/Cascadia_Code/static/CascadiaCode-Medium.ttf", s_context->text_size, &s_context->font_texture, &s_context->glyphs[0]);
+            return font::loadFontSDF("CascadiaCode-Medium.ttf", s_context->text_size, &s_context->font_texture, &s_context->glyphs[0]);
 #endif // __EMSCRIPTEN__
         }
 
